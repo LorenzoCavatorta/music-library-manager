@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Library — DaisyUI</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .grid-albums {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-base-200">
+    <div id="unlock" class="hero min-h-screen">
+        <div class="hero-content">
+            <div class="card w-96 bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title justify-center text-2xl">Music Library</h2>
+                    <div class="form-control mt-4">
+                        <input type="password" id="passphrase" placeholder="Passphrase" class="input input-bordered" autofocus>
+                    </div>
+                    <div class="card-actions justify-center mt-4">
+                        <button class="btn btn-primary" onclick="unlock()">Unlock</button>
+                    </div>
+                    <p class="text-error text-center text-sm mt-2" id="error"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app" class="hidden p-4 max-w-7xl mx-auto">
+        <div class="sticky top-0 bg-base-200 z-10 pb-4 pt-2">
+            <h1 class="text-3xl font-bold mb-4">Music Library</h1>
+            <div class="flex flex-wrap gap-3 items-center">
+                <input type="text" id="search" placeholder="Search artist, title..." class="input input-bordered flex-1 min-w-[200px]">
+                <select id="filterFeeling" class="select select-bordered">
+                    <option value="">All feelings</option>
+                </select>
+                <select id="filterGenre" class="select select-bordered">
+                    <option value="">All genres</option>
+                </select>
+                <select id="filterRating" class="select select-bordered">
+                    <option value="0">All ratings</option>
+                    <option value="1">1+ stars</option>
+                    <option value="2">2+ stars</option>
+                    <option value="3">3+ stars</option>
+                    <option value="4">4+ stars</option>
+                    <option value="5">5 stars</option>
+                </select>
+                <select id="sortBy" class="select select-bordered">
+                    <option value="added">Sort: date added</option>
+                    <option value="rating">Sort: rating</option>
+                    <option value="artist">Sort: artist</option>
+                    <option value="year">Sort: year</option>
+                </select>
+            </div>
+            <p class="text-sm text-base-content/50 mt-2" id="count"></p>
+        </div>
+        <div class="grid-albums" id="grid"></div>
+    </div>
+
+    <script>
+        let collection = [];
+        document.getElementById("passphrase").addEventListener("keydown", e => { if (e.key === "Enter") unlock(); });
+
+        async function decrypt(encrypted, passphrase) {
+            const salt = Uint8Array.from(atob(encrypted.salt), c => c.charCodeAt(0));
+            const iv = Uint8Array.from(atob(encrypted.iv), c => c.charCodeAt(0));
+            const data = Uint8Array.from(atob(encrypted.data), c => c.charCodeAt(0));
+            const keyMaterial = await crypto.subtle.importKey("raw", new TextEncoder().encode(passphrase), "PBKDF2", false, ["deriveKey"]);
+            const key = await crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" }, keyMaterial, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+            const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, data);
+            return new TextDecoder().decode(decrypted);
+        }
+
+        async function unlock() {
+            const passphrase = document.getElementById("passphrase").value;
+            document.getElementById("error").textContent = "";
+            try {
+                const resp = await fetch("collection.enc.json");
+                const encrypted = await resp.json();
+                collection = JSON.parse(await decrypt(encrypted, passphrase));
+                showApp();
+            } catch (e) { document.getElementById("error").textContent = "Wrong passphrase"; }
+        }
+
+        function showApp() {
+            document.getElementById("unlock").classList.add("hidden");
+            document.getElementById("app").classList.remove("hidden");
+            populateFilters(); render();
+            document.getElementById("search").addEventListener("input", render);
+            document.getElementById("filterFeeling").addEventListener("change", render);
+            document.getElementById("filterGenre").addEventListener("change", render);
+            document.getElementById("filterRating").addEventListener("change", render);
+            document.getElementById("sortBy").addEventListener("change", render);
+        }
+
+        function populateFilters() {
+            const feelings = new Set(), genres = new Set();
+            collection.forEach(r => {
+                const f = r.custom_fields["Feeling"]; if (f) f.split(",").forEach(v => feelings.add(v.trim()));
+                const g = r.custom_fields["MyGeneres"]; if (g) g.split(",").forEach(v => genres.add(v.trim()));
+            });
+            const fs = document.getElementById("filterFeeling");
+            [...feelings].sort().forEach(f => fs.add(new Option(f, f)));
+            const gs = document.getElementById("filterGenre");
+            [...genres].sort().forEach(g => gs.add(new Option(g, g)));
+        }
+
+        function render() {
+            const query = document.getElementById("search").value.toLowerCase();
+            const feeling = document.getElementById("filterFeeling").value;
+            const genre = document.getElementById("filterGenre").value;
+            const minRating = parseInt(document.getElementById("filterRating").value);
+            const sortBy = document.getElementById("sortBy").value;
+            let filtered = collection.filter(r => {
+                if (query && !`${r.artists.join(" ")} ${r.title}`.toLowerCase().includes(query)) return false;
+                if (feeling && !(r.custom_fields["Feeling"] || "").split(",").map(s => s.trim()).includes(feeling)) return false;
+                if (genre && !(r.custom_fields["MyGeneres"] || "").split(",").map(s => s.trim()).includes(genre)) return false;
+                if (minRating && (r.rating || 0) < minRating) return false;
+                return true;
+            });
+            if (sortBy === "rating") filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+            else if (sortBy === "artist") filtered.sort((a, b) => a.artists[0].localeCompare(b.artists[0]));
+            else if (sortBy === "year") filtered.sort((a, b) => (b.year || 0) - (a.year || 0));
+            document.getElementById("count").textContent = `${filtered.length} / ${collection.length} releases`;
+            document.getElementById("grid").innerHTML = filtered.map(r => `
+                <div class="card bg-base-100 shadow-md">
+                    <div class="card-body p-6 text-center">
+                        <h3 class="text-xl font-bold">${esc(r.artists.join(", "))}</h3>
+                        <p class="text-base text-base-content/70 mt-1">${esc(r.title)}</p>
+                        <p class="text-lg mt-2 tracking-widest">${stars(r.rating || 0)}</p>
+                        <p class="text-xs text-base-content/40 mt-1">${r.year || "?"} · ${esc(r.labels.join(", "))}</p>
+                        <div class="flex flex-wrap gap-1 mt-3 justify-center">
+                            ${tagHtml(r.custom_fields["Feeling"], "badge-secondary")}
+                            ${tagHtml(r.custom_fields["MyGeneres"], "badge-accent")}
+                        </div>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function stars(n) { return "★".repeat(n) + "☆".repeat(5 - n); }
+
+        function tagHtml(v, cls) { return v ? v.split(",").map(s => `<span class="badge ${cls} badge-sm">${esc(s.trim())}</span>`).join("") : ""; }
+        function esc(s) { const d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+    </script>
+</body>
+</html>
