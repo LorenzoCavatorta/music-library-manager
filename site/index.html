@@ -348,6 +348,7 @@
                         ${tagHtml(r.custom_fields["Feeling"], "badge-secondary")}
                         ${tagHtml(r.custom_fields["MyGeneres"], "badge-accent")}
                     </div>
+                    ${r.spotify_url ? `<a href="${esc(r.spotify_url)}" target="_blank" rel="noopener" class="btn btn-sm btn-outline btn-success mt-2">Open in Spotify</a>` : ""}
                 </div>
             </div>`;
         }
