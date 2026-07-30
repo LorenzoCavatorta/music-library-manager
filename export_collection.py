@@ -58,6 +58,8 @@ def fetch_collection(session: requests.Session, username: str) -> list[dict]:
                 "formats": [f["name"] for f in release_info["formats"]],
                 "genres": release_info.get("genres", []),
                 "styles": release_info.get("styles", []),
+                "cover_image": release_info.get("cover_image", ""),
+                "thumb": release_info.get("thumb", ""),
                 "rating": item.get("rating", 0),
                 "date_added": item.get("date_added"),
                 "custom_fields": {},
