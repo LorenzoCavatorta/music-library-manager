@@ -22,6 +22,13 @@
 - [ ] Trigger first deploy (push or manual workflow run)
 - [ ] Verify the live site works on mobile
 
+## In progress
+
+- [ ] Spotify integration (`enrich_spotify.py`) — searches Spotify for each album, adds clickable links to cards
+  - Requires one-time setup: create app at https://developer.spotify.com/dashboard
+  - Run with: `SPOTIFY_CLIENT_ID=... SPOTIFY_CLIENT_SECRET=... uv run python enrich_spotify.py`
+  - Must run between `export_collection.py` and `encrypt_collection.py`
+
 ## Future ideas (not started)
 
 - Add cover art (Discogs API has thumbnail URLs)
