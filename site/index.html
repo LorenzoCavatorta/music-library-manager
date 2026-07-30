@@ -133,10 +133,25 @@
     </div>
 
     <dialog id="addModal" class="modal">
-        <div class="modal-box">
-            <h3 class="font-display text-xl mb-4">Add album to library</h3>
-            <p class="text-sm text-base-content/60 mb-4">Enter artist and title. It will be searched on Discogs and added to your collection within a day.</p>
-            <input type="text" id="addQuery" placeholder="e.g. Trouble by TEED" class="input input-bordered w-full" autofocus>
+        <div class="modal-box max-w-lg">
+            <h3 class="font-display text-xl mb-2">Add album to library</h3>
+            <p class="text-sm text-base-content/60 mb-4">It will be searched on Discogs and added to your collection within a day.</p>
+            <div class="flex flex-col gap-3">
+                <input type="text" id="addQuery" placeholder="Artist - Title (e.g. TEED - Trouble)" class="input input-bordered w-full">
+                <div class="grid grid-cols-2 gap-3">
+                    <select id="addFeeling" class="select select-bordered select-sm w-full"><option value="">Feeling</option></select>
+                    <select id="addGenre" class="select select-bordered select-sm w-full"><option value="">Genre</option></select>
+                    <select id="addInstruments" class="select select-bordered select-sm w-full"><option value="">Instruments</option></select>
+                    <select id="addRating" class="select select-bordered select-sm w-full">
+                        <option value="">Rating</option>
+                        <option value="1">★</option>
+                        <option value="2">★★</option>
+                        <option value="3">★★★</option>
+                        <option value="4">★★★★</option>
+                        <option value="5">★★★★★</option>
+                    </select>
+                </div>
+            </div>
             <div class="modal-action">
                 <form method="dialog">
                     <button class="btn btn-ghost">Cancel</button>
@@ -175,6 +190,7 @@
                 } else {
                     collection = payload.collection;
                     if (payload.gh_issues_token) ghIssueToken = payload.gh_issues_token;
+                    if (payload.config) fieldConfig = payload.config.fields;
                 }
                 showApp();
             } catch (e) { document.getElementById("error").textContent = "Wrong passphrase"; }
@@ -186,11 +202,22 @@
         function showApp() {
             document.getElementById("unlock").classList.add("hidden");
             document.getElementById("app").classList.remove("hidden");
-            populateFilters(); render();
+            populateFilters(); populateAddForm(); render();
             document.getElementById("search").addEventListener("input", render);
             document.addEventListener("click", e => {
                 if (!e.target.closest(".multi-select-dropdown")) closeAllMenus();
             });
+        }
+
+        function populateAddForm() {
+            if (!fieldConfig) return;
+            const populate = (id, values) => {
+                const el = document.getElementById(id);
+                values.forEach(v => el.add(new Option(v, v)));
+            };
+            if (fieldConfig.Feeling) populate("addFeeling", fieldConfig.Feeling);
+            if (fieldConfig.MyGeneres) populate("addGenre", fieldConfig.MyGeneres);
+            if (fieldConfig.Instruments) populate("addInstruments", fieldConfig.Instruments);
         }
 
         function populateFilters() {
@@ -384,9 +411,14 @@
         function esc(s) { const d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
 
         let ghIssueToken = null;
+        let fieldConfig = null;
 
         async function submitAddRequest() {
             const query = document.getElementById("addQuery").value.trim();
+            const feeling = document.getElementById("addFeeling").value;
+            const genre = document.getElementById("addGenre").value;
+            const instruments = document.getElementById("addInstruments").value;
+            const rating = document.getElementById("addRating").value;
             const status = document.getElementById("addStatus");
             const btn = document.getElementById("addSubmitBtn");
 
@@ -401,6 +433,13 @@
             btn.classList.add("loading");
             status.textContent = "";
 
+            const fields = [];
+            if (feeling) fields.push(`- **Feeling:** ${feeling}`);
+            if (genre) fields.push(`- **MyGeneres:** ${genre}`);
+            if (instruments) fields.push(`- **Instruments:** ${instruments}`);
+            if (rating) fields.push(`- **Rating:** ${rating}`);
+            const body = fields.length ? `### Custom fields\n\n${fields.join("\n")}` : "";
+
             try {
                 const resp = await fetch("https://api.github.com/repos/LorenzoCavatorta/music-library-manager/issues", {
                     method: "POST",
@@ -410,7 +449,8 @@
                     },
                     body: JSON.stringify({
                         title: `Add: ${query}`,
-                        labels: ["add-request"],
+                        labels: ["library-addition-request"],
+                        body: body,
                     }),
                 });
 
@@ -418,6 +458,10 @@
                     status.textContent = "Submitted! It will appear in your library within a day.";
                     status.className = "text-sm mt-2 text-success";
                     document.getElementById("addQuery").value = "";
+                    document.getElementById("addFeeling").value = "";
+                    document.getElementById("addGenre").value = "";
+                    document.getElementById("addInstruments").value = "";
+                    document.getElementById("addRating").value = "";
                 } else {
                     const err = await resp.json();
                     status.textContent = `Error: ${err.message || resp.status}`;

@@ -33,6 +33,11 @@ def main():
 
     payload = {"collection": collection}
 
+    if os.path.exists("config.json"):
+        with open("config.json") as f:
+            payload["config"] = json.load(f)
+        print("Bundling config.json into encrypted payload")
+
     gh_issues_token = os.environ.get("GH_ISSUES_TOKEN")
     if gh_issues_token:
         payload["gh_issues_token"] = gh_issues_token

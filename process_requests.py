@@ -34,7 +34,7 @@ def get_discogs_session(token: str) -> requests.Session:
 def fetch_open_requests(gh: requests.Session) -> list[dict]:
     resp = gh.get(
         f"{GITHUB_API}/repos/{REPO}/issues",
-        params={"labels": "add-request", "state": "open", "per_page": 50},
+        params={"labels": "library-addition-request", "state": "open", "per_page": 50},
     )
     resp.raise_for_status()
     return resp.json()
@@ -61,17 +61,79 @@ def search_discogs(discogs: requests.Session, query: str) -> dict | None:
 
 def add_to_discogs_collection(
     discogs: requests.Session, username: str, release_id: int
-) -> bool:
+) -> dict | None:
     resp = discogs.post(
         f"{DISCOGS_API}/users/{username}/collection/folders/1/releases/{release_id}",
     )
     if resp.status_code in (201, 200):
-        return True
+        return resp.json()
     if resp.status_code == 409:
         print(f"  Already in collection (release {release_id})")
-        return True
+        return get_collection_instance(discogs, username, release_id)
     print(f"  Failed to add release {release_id}: {resp.status_code} {resp.text}")
-    return False
+    return None
+
+
+def get_collection_instance(
+    discogs: requests.Session, username: str, release_id: int
+) -> dict | None:
+    resp = discogs.get(
+        f"{DISCOGS_API}/users/{username}/collection/releases/{release_id}",
+    )
+    if resp.status_code == 200:
+        releases = resp.json().get("releases", [])
+        if releases:
+            return releases[0]
+    return None
+
+
+def fetch_field_ids(discogs: requests.Session, username: str) -> dict[str, int]:
+    resp = discogs.get(f"{DISCOGS_API}/users/{username}/collection/fields")
+    if resp.status_code != 200:
+        return {}
+    return {f["name"]: f["id"] for f in resp.json()["fields"]}
+
+
+def set_custom_fields(
+    discogs: requests.Session, username: str, instance: dict,
+    field_ids: dict[str, int], custom_fields: dict,
+):
+    folder_id = instance.get("folder_id", 1)
+    release_id = instance["id"] if "id" in instance else instance["basic_information"]["id"]
+    instance_id = instance["instance_id"]
+
+    for field_name, value in custom_fields.items():
+        if field_name == "Rating":
+            continue
+        fid = field_ids.get(field_name)
+        if not fid:
+            print(f"  Warning: unknown field '{field_name}', skipping")
+            continue
+        resp = discogs.post(
+            f"{DISCOGS_API}/users/{username}/collection/folders/{folder_id}/releases/{release_id}/instances/{instance_id}/fields/{fid}",
+            json={"value": value},
+        )
+        if resp.status_code in (200, 204):
+            print(f"  Set {field_name} = {value}")
+        else:
+            print(f"  Failed to set {field_name}: {resp.status_code}")
+        time.sleep(0.5)
+
+
+def set_rating(
+    discogs: requests.Session, username: str, instance: dict, rating: int
+):
+    folder_id = instance.get("folder_id", 1)
+    release_id = instance["id"] if "id" in instance else instance["basic_information"]["id"]
+    instance_id = instance["instance_id"]
+    resp = discogs.post(
+        f"{DISCOGS_API}/users/{username}/collection/folders/{folder_id}/releases/{release_id}/instances/{instance_id}",
+        json={"rating": rating},
+    )
+    if resp.status_code in (200, 204):
+        print(f"  Set rating = {rating}")
+    else:
+        print(f"  Failed to set rating: {resp.status_code}")
 
 
 def close_issue(gh: requests.Session, issue_number: int, comment: str):
@@ -85,12 +147,24 @@ def close_issue(gh: requests.Session, issue_number: int, comment: str):
     )
 
 
-def parse_request(issue: dict) -> str:
+def parse_request(issue: dict) -> tuple[str, dict]:
     title = issue["title"]
     for prefix in ("Add:", "add:", "Add ", "add "):
         if title.startswith(prefix):
-            return title[len(prefix):].strip()
-    return title.strip()
+            title = title[len(prefix):].strip()
+            break
+
+    custom_fields = {}
+    body = issue.get("body") or ""
+    for line in body.splitlines():
+        line = line.strip()
+        if line.startswith("- **") and ":**" in line:
+            key = line.split("**")[1].rstrip(":")
+            value = line.split(":** ", 1)[1] if ":** " in line else ""
+            if value:
+                custom_fields[key] = value
+
+    return title.strip(), custom_fields
 
 
 def main():
@@ -115,9 +189,14 @@ def main():
     if not issues:
         return
 
+    field_ids = fetch_field_ids(discogs, username)
+    print(f"Field IDs: {field_ids}")
+
     for issue in issues:
-        query = parse_request(issue)
+        query, custom_fields = parse_request(issue)
         print(f"\nProcessing #{issue['number']}: \"{query}\"")
+        if custom_fields:
+            print(f"  Fields: {custom_fields}")
 
         result = search_discogs(discogs, query)
         time.sleep(1)
@@ -138,14 +217,24 @@ def main():
 
         print(f"  Found: {title} ({year}) [id={release_id}]")
 
-        added = add_to_discogs_collection(discogs, username, release_id)
+        instance = add_to_discogs_collection(discogs, username, release_id)
         time.sleep(1)
 
-        if added:
+        if instance:
+            if custom_fields:
+                set_custom_fields(discogs, username, instance, field_ids, custom_fields)
+                rating_str = custom_fields.get("Rating")
+                if rating_str and rating_str.isdigit():
+                    set_rating(discogs, username, instance, int(rating_str))
+
             comment = (
                 f"Added to collection: **{title}** ({year})\n\n"
                 f"Discogs release: https://www.discogs.com/release/{release_id}\n"
             )
+            if custom_fields:
+                comment += "\nCustom fields set:\n"
+                for k, v in custom_fields.items():
+                    comment += f"- {k}: {v}\n"
             if cover:
                 comment += f"\n![cover]({cover})"
             close_issue(gh, issue["number"], comment)

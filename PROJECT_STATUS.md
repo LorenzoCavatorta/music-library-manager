@@ -73,7 +73,7 @@ Allows adding albums to the library without going through Discogs directly. Desi
 
 **Flow:**
 1. User submits "Add: Artist - Title" from the app UI (or any GitHub Issues client)
-2. A GitHub Issue is created with label `add-request`
+2. A GitHub Issue is created with label `library-addition-request`
 3. Daily cron (06:00 UTC) runs `process_requests.py`: searches Discogs, adds to collection, closes issue with result
 4. The deploy re-exports, re-encrypts, and publishes the updated site
 
@@ -88,7 +88,7 @@ Allows adding albums to the library without going through Discogs directly. Desi
 1. Create a fine-grained PAT at github.com → Settings → Developer settings → Fine-grained tokens
    - Scope: only this repo, permission: Issues (read/write)
 2. Add as repo secret: `GH_ISSUES_TOKEN`
-3. Create the `add-request` label in the repo (Issues → Labels → New label)
+3. Create the `library-addition-request` label in the repo (Issues → Labels → New label)
 
 ## Future ideas (not started)
 
