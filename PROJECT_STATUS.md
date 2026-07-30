@@ -24,10 +24,48 @@
 
 ## In progress
 
-- [ ] Spotify integration (`enrich_spotify.py`) — searches Spotify for each album, adds clickable links to cards
-  - Requires one-time setup: create app at https://developer.spotify.com/dashboard
-  - Run with: `SPOTIFY_CLIENT_ID=... SPOTIFY_CLIENT_SECRET=... uv run python enrich_spotify.py`
-  - Must run between `export_collection.py` and `encrypt_collection.py`
+### Spotify integration
+
+Adds clickable "Open in Spotify" links to album cards. The script (`enrich_spotify.py`) searches the Spotify Search API for each album by artist+title and stores the URL in `collection.json`.
+
+**Design choices:**
+- Uses plain `requests` instead of the `spotipy` library — avoids a new dependency for two simple API calls (client credentials token + search)
+- Client Credentials flow (no user login needed) — sufficient for the public Search API
+- Saves progress to `collection.json` every 50 albums — avoids losing work if interrupted
+- Skips albums that already have a `spotify_url` on re-runs — safe to run repeatedly
+- Exits gracefully if rate-limited for >60s (saves progress before quitting)
+- Request timeout of (5s connect, 10s read) to avoid hanging indefinitely
+
+**One-time setup:**
+1. Create a Spotify app at https://developer.spotify.com/dashboard (no redirect URI needed)
+2. Copy Client ID and Client Secret into `.env`
+
+**Playbook — completing the enrichment run (2026-07-31 or later):**
+
+The first run on 2026-07-30 hit Spotify's rate limit after ~610 albums (0.1s sleep was too aggressive). The app is rate-limited until ~2026-07-31 morning.
+
+1. Confirm rate limit has expired:
+   ```
+   export $(grep -v '^#' .env | xargs)
+   PYTHONUNBUFFERED=1 uv run python enrich_spotify.py
+   ```
+   If it prints "Rate limited for Xs" and exits, wait longer or create a second Spotify app with fresh credentials.
+
+2. If it starts processing, let it run (~2 min for 1109 albums at 0.1s/req). It will print progress and save every 50 albums.
+
+3. After completion, re-encrypt and verify:
+   ```
+   export $(grep -v '^#' .env | xargs)
+   uv run python encrypt_collection.py
+   python3 -m http.server 8001 --directory site
+   ```
+   Open http://localhost:8001, unlock, and spot-check a few albums have the Spotify button.
+
+4. If many albums show "not found", it may be due to Discogs artist name formatting (e.g. "Grimes (4)" with disambiguation numbers). A follow-up improvement would be to strip trailing `(N)` from artist names before searching.
+
+**Known issues:**
+- Discogs artist names sometimes have disambiguation suffixes like "(2)", "(4)" which don't match on Spotify — expect ~10-20% miss rate
+- Spotify rate limit is per-app (not per-IP), so a second app is the workaround if throttled
 
 ## Future ideas (not started)
 
@@ -49,3 +87,6 @@
 | uv for Python env | Keeps project isolated from other work environments |
 | JSON export format | Flexible, easy to query, convertible to SQLite later if needed |
 | Single-column layout | Better readability, works well on mobile |
+| Plain `requests` for Spotify (not `spotipy`) | Only need 2 API calls; avoids extra dep for trivial auth+search |
+| Spotify Client Credentials (not user auth) | Search API is public, no need for user login flow |
+| Incremental save every 50 albums | Rate limits and network issues are real — don't lose progress |
