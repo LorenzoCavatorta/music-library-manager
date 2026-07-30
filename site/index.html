@@ -84,6 +84,10 @@
             <div class="flex items-center justify-between mb-3">
                 <h1 class="font-display text-4xl">Music Library</h1>
                 <div class="flex items-center gap-2">
+                    <button class="btn btn-primary btn-sm gap-1" onclick="document.getElementById('addModal').showModal()">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        <span class="hidden sm:inline">Add</span>
+                    </button>
                     <button class="btn btn-ghost btn-sm md:hidden" onclick="toggleFilterPanel()" id="filterToggleBtn">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
                         <span class="text-xs" id="filterBadge"></span>
@@ -128,6 +132,37 @@
         <div class="grid-albums mt-4" id="grid"></div>
     </div>
 
+    <dialog id="addModal" class="modal">
+        <div class="modal-box max-w-lg">
+            <h3 class="font-display text-xl mb-2">Add album to library</h3>
+            <p class="text-sm text-base-content/60 mb-4">It will be searched on Discogs and added to your collection within a day.</p>
+            <div class="flex flex-col gap-3">
+                <input type="text" id="addQuery" placeholder="Artist - Title (e.g. TEED - Trouble)" class="input input-bordered w-full">
+                <div class="grid grid-cols-2 gap-3">
+                    <select id="addFeeling" class="select select-bordered select-sm w-full"><option value="">Feeling</option></select>
+                    <select id="addGenre" class="select select-bordered select-sm w-full"><option value="">Genre</option></select>
+                    <select id="addInstruments" class="select select-bordered select-sm w-full"><option value="">Instruments</option></select>
+                    <select id="addRating" class="select select-bordered select-sm w-full">
+                        <option value="">Rating</option>
+                        <option value="1">★</option>
+                        <option value="2">★★</option>
+                        <option value="3">★★★</option>
+                        <option value="4">★★★★</option>
+                        <option value="5">★★★★★</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-action">
+                <form method="dialog">
+                    <button class="btn btn-ghost">Cancel</button>
+                </form>
+                <button class="btn btn-primary" id="addSubmitBtn" onclick="submitAddRequest()">Submit</button>
+            </div>
+            <p class="text-sm mt-2" id="addStatus"></p>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
     <script>
         let collection = [];
         const selected = { feeling: new Set(), genre: new Set() };
@@ -149,7 +184,14 @@
             try {
                 const resp = await fetch("collection.enc.json");
                 const encrypted = await resp.json();
-                collection = JSON.parse(await decrypt(encrypted, passphrase));
+                const payload = JSON.parse(await decrypt(encrypted, passphrase));
+                if (Array.isArray(payload)) {
+                    collection = payload;
+                } else {
+                    collection = payload.collection;
+                    if (payload.gh_issues_token) ghIssueToken = payload.gh_issues_token;
+                    if (payload.config) fieldConfig = payload.config.fields;
+                }
                 showApp();
             } catch (e) { document.getElementById("error").textContent = "Wrong passphrase"; }
         }
@@ -160,11 +202,22 @@
         function showApp() {
             document.getElementById("unlock").classList.add("hidden");
             document.getElementById("app").classList.remove("hidden");
-            populateFilters(); render();
+            populateFilters(); populateAddForm(); render();
             document.getElementById("search").addEventListener("input", render);
             document.addEventListener("click", e => {
                 if (!e.target.closest(".multi-select-dropdown")) closeAllMenus();
             });
+        }
+
+        function populateAddForm() {
+            if (!fieldConfig) return;
+            const populate = (id, values) => {
+                const el = document.getElementById(id);
+                values.forEach(v => el.add(new Option(v, v)));
+            };
+            if (fieldConfig.Feeling) populate("addFeeling", fieldConfig.Feeling);
+            if (fieldConfig.MyGeneres) populate("addGenre", fieldConfig.MyGeneres);
+            if (fieldConfig.Instruments) populate("addInstruments", fieldConfig.Instruments);
         }
 
         function populateFilters() {
@@ -356,6 +409,74 @@
         function stars(n) { return "★".repeat(n) + "☆".repeat(5 - n); }
         function tagHtml(v, cls) { return v ? v.split(",").map(s => `<span class="badge ${cls} badge-sm">${esc(s.trim())}</span>`).join("") : ""; }
         function esc(s) { const d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+
+        let ghIssueToken = null;
+        let fieldConfig = null;
+
+        async function submitAddRequest() {
+            const query = document.getElementById("addQuery").value.trim();
+            const feeling = document.getElementById("addFeeling").value;
+            const genre = document.getElementById("addGenre").value;
+            const instruments = document.getElementById("addInstruments").value;
+            const rating = document.getElementById("addRating").value;
+            const status = document.getElementById("addStatus");
+            const btn = document.getElementById("addSubmitBtn");
+
+            if (!query) { status.textContent = "Please enter an album to add."; status.className = "text-sm mt-2 text-warning"; return; }
+
+            if (!ghIssueToken) {
+                status.textContent = "No GitHub token configured. Set GH_ISSUES_TOKEN secret.";
+                status.className = "text-sm mt-2 text-error";
+                return;
+            }
+
+            btn.classList.add("loading");
+            status.textContent = "";
+
+            const fields = [];
+            if (feeling) fields.push(`- **Feeling:** ${feeling}`);
+            if (genre) fields.push(`- **MyGeneres:** ${genre}`);
+            if (instruments) fields.push(`- **Instruments:** ${instruments}`);
+            if (rating) fields.push(`- **Rating:** ${rating}`);
+            const body = fields.length ? `### Custom fields\n\n${fields.join("\n")}` : "";
+
+            try {
+                const resp = await fetch("https://api.github.com/repos/LorenzoCavatorta/music-library-manager/issues", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${ghIssueToken}`,
+                        "Accept": "application/vnd.github+json",
+                    },
+                    body: JSON.stringify({
+                        title: `Add: ${query}`,
+                        labels: ["library-addition-request"],
+                        body: body,
+                    }),
+                });
+
+                if (resp.ok) {
+                    status.textContent = "Submitted! It will appear in your library within a day.";
+                    status.className = "text-sm mt-2 text-success";
+                    document.getElementById("addQuery").value = "";
+                    document.getElementById("addFeeling").value = "";
+                    document.getElementById("addGenre").value = "";
+                    document.getElementById("addInstruments").value = "";
+                    document.getElementById("addRating").value = "";
+                } else {
+                    const err = await resp.json();
+                    status.textContent = `Error: ${err.message || resp.status}`;
+                    status.className = "text-sm mt-2 text-error";
+                }
+            } catch (e) {
+                status.textContent = "Network error. Please try again.";
+                status.className = "text-sm mt-2 text-error";
+            }
+            btn.classList.remove("loading");
+        }
+
+        document.getElementById("addQuery").addEventListener("keydown", e => {
+            if (e.key === "Enter") submitAddRequest();
+        });
     </script>
 </body>
 </html>

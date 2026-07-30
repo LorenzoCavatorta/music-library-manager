@@ -28,9 +28,22 @@ def main():
         print("Set the PASSPHRASE environment variable")
         sys.exit(1)
 
-    with open("collection.json", "rb") as f:
-        data = f.read()
+    with open("collection.json") as f:
+        collection = json.load(f)
 
+    payload = {"collection": collection}
+
+    if os.path.exists("config.json"):
+        with open("config.json") as f:
+            payload["config"] = json.load(f)
+        print("Bundling config.json into encrypted payload")
+
+    gh_issues_token = os.environ.get("GH_ISSUES_TOKEN")
+    if gh_issues_token:
+        payload["gh_issues_token"] = gh_issues_token
+        print("Bundling GH_ISSUES_TOKEN into encrypted payload")
+
+    data = json.dumps(payload, ensure_ascii=False).encode()
     encrypted = encrypt(data, passphrase)
 
     with open("site/collection.enc.json", "w") as f:

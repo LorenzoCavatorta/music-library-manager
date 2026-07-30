@@ -38,11 +38,12 @@ Discogs removed the ability to filter/view custom fields in their app. This proj
 ## Features
 
 - Search by artist or title
-- Filter by Feeling, MyGeneres, minimum rating
+- Filter by Feeling, MyGeneres, minimum rating (multi-select)
 - Sort by date added, rating, artist, or year
-- Single-column card layout (artist prominent, then title, then stars, then tags)
+- Cover art grid layout with editorial typography
+- Add albums from the UI — creates a GitHub Issue, processed daily by a cron job that searches Discogs and adds to collection
 - Passphrase protection (AES-256-GCM, no server needed)
-- Works on mobile (responsive, can be added to home screen)
+- Works on mobile (responsive, collapsible filter bar)
 
 ## Local development
 
@@ -73,6 +74,7 @@ Go to repo Settings → Secrets and variables → Actions, and add:
 |--------|-------|
 | `DISCOGS_TOKEN` | Your Discogs personal access token (Settings → Developers) |
 | `PASSPHRASE` | The passphrase used to encrypt/decrypt the collection |
+| `GH_ISSUES_TOKEN` | Fine-grained PAT with Issues read/write on this repo (for the add-album feature) |
 
 ### Enable Pages
 

@@ -1,21 +1,22 @@
-name: Deploy to GitHub Pages
+name: Process add-requests
 
 on:
-  push:
-    branches: [main]
+  schedule:
+    - cron: '0 6 * * *'  # daily at 06:00 UTC
   workflow_dispatch:
 
 permissions:
   contents: read
+  issues: write
   pages: write
   id-token: write
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  process-and-deploy:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -28,6 +29,12 @@ jobs:
 
       - name: Install dependencies
         run: uv sync
+
+      - name: Process add-request issues
+        run: uv run python process_requests.py
+        env:
+          GH_TOKEN: ${{ secrets.GH_ISSUES_TOKEN }}
+          DISCOGS_TOKEN: ${{ secrets.DISCOGS_TOKEN }}
 
       - name: Export Discogs collection
         run: uv run python export_collection.py

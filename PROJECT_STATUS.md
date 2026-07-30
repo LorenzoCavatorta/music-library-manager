@@ -67,13 +67,35 @@ The first run on 2026-07-30 hit Spotify's rate limit after ~610 albums (0.1s sle
 - Discogs artist names sometimes have disambiguation suffixes like "(2)", "(4)" which don't match on Spotify — expect ~10-20% miss rate
 - Spotify rate limit is per-app (not per-IP), so a second app is the workaround if throttled
 
+## Add-request system
+
+Allows adding albums to the library without going through Discogs directly. Designed to also support future OpenClaw bot integration.
+
+**Flow:**
+1. User submits "Add: Artist - Title" from the app UI (or any GitHub Issues client)
+2. A GitHub Issue is created with label `library-addition-request`
+3. Daily cron (06:00 UTC) runs `process_requests.py`: searches Discogs, adds to collection, closes issue with result
+4. The deploy re-exports, re-encrypts, and publishes the updated site
+
+**Design choices:**
+- GitHub Issues as the request queue — narrow token scope (`issues` only for the browser token), built-in audit trail, no merge conflicts, works from any client
+- Token bundled in encrypted payload — only accessible after passphrase unlock; scoped to `issues` permission only (cannot write code)
+- Backwards-compatible payload format — `encrypt_collection.py` now outputs `{collection, gh_issues_token}` but the UI handles the old bare-array format too
+- Separate workflow (`process-requests.yml`) from deploy — processing can fail without blocking normal deploys
+- Future: OpenClaw bot can submit requests by opening issues via the same API, no changes needed
+
+**Setup:**
+1. Create a fine-grained PAT at github.com → Settings → Developer settings → Fine-grained tokens
+   - Scope: only this repo, permission: Issues (read/write)
+2. Add as repo secret: `GH_ISSUES_TOKEN`
+3. Create the `library-addition-request` label in the repo (Issues → Labels → New label)
+
 ## Future ideas (not started)
 
-- Add cover art (Discogs API has thumbnail URLs)
 - PWA manifest + service worker for offline support / "Add to Home Screen"
 - Additional filters (Instruments, Highlights, year range)
 - Link each card to the Discogs release page
-- Periodic auto-sync (scheduled GitHub Action, e.g. weekly)
+- OpenClaw bot integration for submitting add-requests
 - Multiple custom field support in filter dropdowns (multi-select)
 
 ## Architecture decisions
@@ -90,3 +112,6 @@ The first run on 2026-07-30 hit Spotify's rate limit after ~610 albums (0.1s sle
 | Plain `requests` for Spotify (not `spotipy`) | Only need 2 API calls; avoids extra dep for trivial auth+search |
 | Spotify Client Credentials (not user auth) | Search API is public, no need for user login flow |
 | Incremental save every 50 albums | Rate limits and network issues are real — don't lose progress |
+| GitHub Issues for add-requests (not JSON file) | Issues-only token scope, audit trail, no merge conflicts, any client can submit |
+| Token in encrypted payload (not hardcoded) | Only available after passphrase unlock; passphrase is the security boundary |
+| Separate cron workflow for processing | Decouples request processing from deploy — failures are isolated |
