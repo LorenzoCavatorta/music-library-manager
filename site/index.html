@@ -3,30 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Library — DaisyUI</title>
+    <title>Music Library</title>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap" rel="stylesheet">
     <style>
+        .font-display { font-family: 'DM Serif Display', serif; }
         .grid-albums {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            max-width: 600px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
             margin: 0 auto;
+        }
+        .album-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .album-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+        }
+        .album-img {
+            aspect-ratio: 1/1;
+            object-fit: cover;
+            width: 100%;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .album-img.loaded { opacity: 1; }
+        .img-placeholder {
+            aspect-ratio: 1/1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, oklch(0.25 0.02 260), oklch(0.2 0.02 300));
+        }
+        .multi-select-dropdown { position: relative; }
+        .multi-select-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 50;
+            max-height: 280px;
+            overflow-y: auto;
+            min-width: 200px;
+            display: none;
+        }
+        .multi-select-menu.open { display: block; }
+        .filter-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        @media (max-width: 768px) {
+            .filter-section { display: none; }
+            .filter-section.open { display: flex; }
         }
     </style>
 </head>
 <body class="min-h-screen bg-base-200">
     <div id="unlock" class="hero min-h-screen">
         <div class="hero-content">
-            <div class="card w-96 bg-base-100 shadow-xl">
-                <div class="card-body">
-                    <h2 class="card-title justify-center text-2xl">Music Library</h2>
-                    <div class="form-control mt-4">
-                        <input type="password" id="passphrase" placeholder="Passphrase" class="input input-bordered" autofocus>
+            <div class="card w-96 bg-base-100 shadow-2xl">
+                <div class="card-body items-center text-center">
+                    <h2 class="font-display text-3xl">Music Library</h2>
+                    <p class="text-base-content/50 text-sm mt-1">Enter passphrase to browse your collection</p>
+                    <div class="form-control mt-6 w-full">
+                        <input type="password" id="passphrase" placeholder="Passphrase" class="input input-bordered w-full" autofocus>
                     </div>
-                    <div class="card-actions justify-center mt-4">
-                        <button class="btn btn-primary" onclick="unlock()">Unlock</button>
+                    <div class="card-actions mt-4">
+                        <button class="btn btn-primary btn-wide" onclick="unlock()">Unlock</button>
                     </div>
                     <p class="text-error text-center text-sm mt-2" id="error"></p>
                 </div>
@@ -34,39 +79,58 @@
         </div>
     </div>
 
-    <div id="app" class="hidden p-4 max-w-7xl mx-auto">
-        <div class="sticky top-0 bg-base-200 z-10 pb-4 pt-2">
-            <h1 class="text-3xl font-bold mb-4">Music Library</h1>
-            <div class="flex flex-wrap gap-3 items-center">
-                <input type="text" id="search" placeholder="Search artist, title..." class="input input-bordered flex-1 min-w-[200px]">
-                <select id="filterFeeling" class="select select-bordered">
-                    <option value="">All feelings</option>
-                </select>
-                <select id="filterGenre" class="select select-bordered">
-                    <option value="">All genres</option>
-                </select>
-                <select id="filterRating" class="select select-bordered">
-                    <option value="0">All ratings</option>
-                    <option value="1">1+ stars</option>
-                    <option value="2">2+ stars</option>
-                    <option value="3">3+ stars</option>
-                    <option value="4">4+ stars</option>
-                    <option value="5">5 stars</option>
-                </select>
-                <select id="sortBy" class="select select-bordered">
-                    <option value="added">Sort: date added</option>
-                    <option value="rating">Sort: rating</option>
-                    <option value="artist">Sort: artist</option>
-                    <option value="year">Sort: year</option>
-                </select>
+    <div id="app" class="hidden p-4 lg:p-8 max-w-[1300px] mx-auto">
+        <div class="sticky top-0 bg-base-200/80 backdrop-blur-md z-10 pb-3 pt-3 -mx-4 px-4 lg:-mx-8 lg:px-8">
+            <div class="flex items-center justify-between mb-3">
+                <h1 class="font-display text-4xl">Music Library</h1>
+                <div class="flex items-center gap-2">
+                    <button class="btn btn-ghost btn-sm md:hidden" onclick="toggleFilterPanel()" id="filterToggleBtn">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                        <span class="text-xs" id="filterBadge"></span>
+                    </button>
+                    <p class="text-sm text-base-content/50" id="count"></p>
+                </div>
             </div>
-            <p class="text-sm text-base-content/50 mt-2" id="count"></p>
+            <div class="filter-section flex flex-wrap gap-2 items-center" id="filterSection">
+                <div class="multi-select-dropdown" id="feelingDropdown">
+                    <button class="btn btn-outline btn-sm gap-2" onclick="toggleMenu('feeling')">
+                        <span id="feelingLabel">All feelings</span>
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div class="multi-select-menu bg-base-100 rounded-box shadow-xl p-2 mt-1" id="feelingMenu"></div>
+                </div>
+                <div class="multi-select-dropdown" id="genreDropdown">
+                    <button class="btn btn-outline btn-sm gap-2" onclick="toggleMenu('genre')">
+                        <span id="genreLabel">All genres</span>
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div class="multi-select-menu bg-base-100 rounded-box shadow-xl p-2 mt-1" id="genreMenu"></div>
+                </div>
+                <div class="multi-select-dropdown" id="ratingDropdown">
+                    <button class="btn btn-outline btn-sm gap-2" onclick="toggleMenu('rating')">
+                        <span id="ratingLabel">All ratings</span>
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div class="multi-select-menu bg-base-100 rounded-box shadow-xl p-2 mt-1" id="ratingMenu"></div>
+                </div>
+                <div class="multi-select-dropdown" id="sortDropdown">
+                    <button class="btn btn-outline btn-sm gap-2" onclick="toggleMenu('sort')">
+                        <span id="sortLabel">Sort: date added</span>
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div class="multi-select-menu bg-base-100 rounded-box shadow-xl p-2 mt-1" id="sortMenu"></div>
+                </div>
+                <input type="text" id="search" placeholder="Search..." class="input input-bordered input-sm w-40">
+                <button class="btn btn-ghost btn-sm text-error hidden" id="resetBtn" onclick="resetAll()">Reset</button>
+            </div>
+            <div class="filter-pills mt-2" id="activePills"></div>
         </div>
-        <div class="grid-albums" id="grid"></div>
+        <div class="grid-albums mt-4" id="grid"></div>
     </div>
 
     <script>
         let collection = [];
+        const selected = { feeling: new Set(), genre: new Set() };
         document.getElementById("passphrase").addEventListener("keydown", e => { if (e.key === "Enter") unlock(); });
 
         async function decrypt(encrypted, passphrase) {
@@ -90,15 +154,17 @@
             } catch (e) { document.getElementById("error").textContent = "Wrong passphrase"; }
         }
 
+        let currentRating = 0;
+        let currentSort = "added";
+
         function showApp() {
             document.getElementById("unlock").classList.add("hidden");
             document.getElementById("app").classList.remove("hidden");
             populateFilters(); render();
             document.getElementById("search").addEventListener("input", render);
-            document.getElementById("filterFeeling").addEventListener("change", render);
-            document.getElementById("filterGenre").addEventListener("change", render);
-            document.getElementById("filterRating").addEventListener("change", render);
-            document.getElementById("sortBy").addEventListener("change", render);
+            document.addEventListener("click", e => {
+                if (!e.target.closest(".multi-select-dropdown")) closeAllMenus();
+            });
         }
 
         function populateFilters() {
@@ -107,22 +173,153 @@
                 const f = r.custom_fields["Feeling"]; if (f) f.split(",").forEach(v => feelings.add(v.trim()));
                 const g = r.custom_fields["MyGeneres"]; if (g) g.split(",").forEach(v => genres.add(v.trim()));
             });
-            const fs = document.getElementById("filterFeeling");
-            [...feelings].sort().forEach(f => fs.add(new Option(f, f)));
-            const gs = document.getElementById("filterGenre");
-            [...genres].sort().forEach(g => gs.add(new Option(g, g)));
+            buildCheckboxMenu("feeling", [...feelings].sort());
+            buildCheckboxMenu("genre", [...genres].sort());
+            buildRadioMenu("rating", [
+                {value: "0", label: "All ratings"},
+                {value: "1", label: "1+ stars"},
+                {value: "2", label: "2+ stars"},
+                {value: "3", label: "3+ stars"},
+                {value: "4", label: "4+ stars"},
+                {value: "5", label: "5 stars"},
+            ]);
+            buildRadioMenu("sort", [
+                {value: "added", label: "Date added"},
+                {value: "rating", label: "Rating"},
+                {value: "artist", label: "Artist"},
+                {value: "year", label: "Year"},
+            ]);
+        }
+
+        function buildCheckboxMenu(type, items) {
+            const menu = document.getElementById(type + "Menu");
+            menu.innerHTML = items.map(item => `
+                <label class="flex items-center gap-2 px-3 py-1.5 rounded cursor-pointer hover:bg-base-200">
+                    <input type="checkbox" class="checkbox checkbox-sm" value="${esc(item)}" onchange="toggleFilter('${type}', this.value, this.checked)">
+                    <span class="text-sm">${esc(item)}</span>
+                </label>
+            `).join("");
+        }
+
+        function buildRadioMenu(type, options) {
+            const menu = document.getElementById(type + "Menu");
+            menu.innerHTML = options.map(opt => `
+                <label class="flex items-center gap-2 px-3 py-1.5 rounded cursor-pointer hover:bg-base-200">
+                    <input type="radio" name="${type}" class="radio radio-sm" value="${opt.value}" ${opt.value === (type === "rating" ? "0" : "added") ? "checked" : ""} onchange="selectRadio('${type}', this.value, '${esc(opt.label)}')">
+                    <span class="text-sm">${esc(opt.label)}</span>
+                </label>
+            `).join("");
+        }
+
+        function selectRadio(type, value, label) {
+            if (type === "rating") {
+                currentRating = parseInt(value);
+                document.getElementById("ratingLabel").textContent = currentRating === 0 ? "All ratings" : `${value}+ stars`;
+            } else {
+                currentSort = value;
+                document.getElementById("sortLabel").textContent = "Sort: " + label;
+            }
+            closeAllMenus();
+            updateResetBtn();
+            render();
+        }
+
+        function toggleMenu(type) {
+            const menu = document.getElementById(type + "Menu");
+            const wasOpen = menu.classList.contains("open");
+            closeAllMenus();
+            if (!wasOpen) menu.classList.add("open");
+        }
+
+        function closeAllMenus() {
+            document.querySelectorAll(".multi-select-menu").forEach(m => m.classList.remove("open"));
+        }
+
+        function toggleFilter(type, value, checked) {
+            if (checked) selected[type].add(value);
+            else selected[type].delete(value);
+            updateLabel(type);
+            updatePills();
+            updateResetBtn();
+            render();
+        }
+
+        function updateLabel(type) {
+            const label = document.getElementById(type + "Label");
+            const count = selected[type].size;
+            const name = type === "feeling" ? "feelings" : "genres";
+            label.textContent = count === 0 ? `All ${name}` : `${count} ${name}`;
+        }
+
+        function updatePills() {
+            const container = document.getElementById("activePills");
+            let html = "";
+            selected.feeling.forEach(v => { html += pill(v, "feeling", "badge-secondary"); });
+            selected.genre.forEach(v => { html += pill(v, "genre", "badge-accent"); });
+            container.innerHTML = html;
+        }
+
+        function pill(value, type, cls) {
+            return `<span class="badge ${cls} gap-1 cursor-pointer" onclick="removePill('${type}','${esc(value)}')">${esc(value)} ✕</span>`;
+        }
+
+        function removePill(type, value) {
+            selected[type].delete(value);
+            const menu = document.getElementById(type + "Menu");
+            const cb = menu.querySelector(`input[value="${value}"]`);
+            if (cb) cb.checked = false;
+            updateLabel(type);
+            updatePills();
+            updateResetBtn();
+            render();
+        }
+
+        function hasActiveFilters() {
+            return selected.feeling.size > 0 || selected.genre.size > 0 || currentRating > 0 || document.getElementById("search").value !== "";
+        }
+
+        function updateResetBtn() {
+            const btn = document.getElementById("resetBtn");
+            if (hasActiveFilters()) btn.classList.remove("hidden");
+            else btn.classList.add("hidden");
+            const badge = document.getElementById("filterBadge");
+            const count = selected.feeling.size + selected.genre.size + (currentRating > 0 ? 1 : 0);
+            badge.textContent = count > 0 ? count : "";
+        }
+
+        function resetAll() {
+            selected.feeling.clear();
+            selected.genre.clear();
+            currentRating = 0;
+            document.getElementById("search").value = "";
+            document.querySelectorAll(".multi-select-menu input[type=checkbox]").forEach(cb => cb.checked = false);
+            document.querySelector('input[name="rating"][value="0"]').checked = true;
+            document.getElementById("ratingLabel").textContent = "All ratings";
+            updateLabel("feeling");
+            updateLabel("genre");
+            updatePills();
+            updateResetBtn();
+            render();
+        }
+
+        function toggleFilterPanel() {
+            document.getElementById("filterSection").classList.toggle("open");
         }
 
         function render() {
             const query = document.getElementById("search").value.toLowerCase();
-            const feeling = document.getElementById("filterFeeling").value;
-            const genre = document.getElementById("filterGenre").value;
-            const minRating = parseInt(document.getElementById("filterRating").value);
-            const sortBy = document.getElementById("sortBy").value;
+            const minRating = currentRating;
+            const sortBy = currentSort;
             let filtered = collection.filter(r => {
                 if (query && !`${r.artists.join(" ")} ${r.title}`.toLowerCase().includes(query)) return false;
-                if (feeling && !(r.custom_fields["Feeling"] || "").split(",").map(s => s.trim()).includes(feeling)) return false;
-                if (genre && !(r.custom_fields["MyGeneres"] || "").split(",").map(s => s.trim()).includes(genre)) return false;
+                if (selected.feeling.size) {
+                    const vals = (r.custom_fields["Feeling"] || "").split(",").map(s => s.trim());
+                    if (!vals.some(v => selected.feeling.has(v))) return false;
+                }
+                if (selected.genre.size) {
+                    const vals = (r.custom_fields["MyGeneres"] || "").split(",").map(s => s.trim());
+                    if (!vals.some(v => selected.genre.has(v))) return false;
+                }
                 if (minRating && (r.rating || 0) < minRating) return false;
                 return true;
             });
@@ -130,24 +327,32 @@
             else if (sortBy === "artist") filtered.sort((a, b) => a.artists[0].localeCompare(b.artists[0]));
             else if (sortBy === "year") filtered.sort((a, b) => (b.year || 0) - (a.year || 0));
             document.getElementById("count").textContent = `${filtered.length} / ${collection.length} releases`;
-            document.getElementById("grid").innerHTML = filtered.map(r => `
-                <div class="card bg-base-100 shadow-md">
-                    <div class="card-body p-6 text-center">
-                        <h3 class="text-xl font-bold">${esc(r.artists.join(", "))}</h3>
-                        <p class="text-base text-base-content/70 mt-1">${esc(r.title)}</p>
-                        <p class="text-lg mt-2 tracking-widest">${stars(r.rating || 0)}</p>
-                        <p class="text-xs text-base-content/40 mt-1">${r.year || "?"} · ${esc(r.labels.join(", "))}</p>
-                        <div class="flex flex-wrap gap-1 mt-3 justify-center">
-                            ${tagHtml(r.custom_fields["Feeling"], "badge-secondary")}
-                            ${tagHtml(r.custom_fields["MyGeneres"], "badge-accent")}
-                        </div>
+            document.getElementById("grid").innerHTML = filtered.map(r => cardHtml(r)).join("");
+        }
+
+        function cardHtml(r) {
+            const img = r.cover_image || r.thumb;
+            const imgBlock = img
+                ? `<img src="${esc(img)}" alt="" class="album-img" loading="lazy" onload="this.classList.add('loaded')">`
+                : `<div class="img-placeholder"><svg class="w-16 h-16 opacity-20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1014 17V7h4V3h-6z"/></svg></div>`;
+            return `<div class="card bg-base-100 shadow-md album-card overflow-hidden">
+                <figure class="bg-base-300">${imgBlock}</figure>
+                <div class="p-4">
+                    <h3 class="font-display text-lg leading-tight">${esc(r.artists.join(", "))}</h3>
+                    <p class="text-sm text-base-content/60 mt-1">${esc(r.title)}</p>
+                    <div class="flex items-center justify-between mt-2">
+                        <span class="text-sm tracking-wider text-warning">${stars(r.rating || 0)}</span>
+                        <span class="text-xs text-base-content/40">${r.year || ""}</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1 mt-2">
+                        ${tagHtml(r.custom_fields["Feeling"], "badge-secondary")}
+                        ${tagHtml(r.custom_fields["MyGeneres"], "badge-accent")}
                     </div>
                 </div>
-            `).join("");
+            </div>`;
         }
 
         function stars(n) { return "★".repeat(n) + "☆".repeat(5 - n); }
-
         function tagHtml(v, cls) { return v ? v.split(",").map(s => `<span class="badge ${cls} badge-sm">${esc(s.trim())}</span>`).join("") : ""; }
         function esc(s) { const d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
     </script>
