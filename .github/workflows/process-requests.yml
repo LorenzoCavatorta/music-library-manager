@@ -31,6 +31,8 @@ jobs:
         run: uv sync
 
       - name: Process add-request issues
+        id: process
+        continue-on-error: true
         run: uv run python process_requests.py
         env:
           GH_TOKEN: ${{ secrets.GH_ISSUES_TOKEN }}
@@ -58,3 +60,9 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+      - name: Fail if any requests could not be processed
+        if: steps.process.outcome == 'failure'
+        run: |
+          echo "::error::Some add-requests failed to process. Check open issues with the 'needs-attention' label."
+          exit 1
