@@ -51,6 +51,25 @@ def search_album(session: requests.Session, artist: str, title: str) -> str | No
     return items[0]["external_urls"].get("spotify")
 
 
+CACHE_PATH = "spotify_cache.json"
+
+
+def load_cache() -> dict[str, str | None]:
+    if os.path.exists(CACHE_PATH):
+        with open(CACHE_PATH) as f:
+            return json.load(f)
+    return {}
+
+
+def save_cache(cache: dict[str, str | None]):
+    with open(CACHE_PATH, "w") as f:
+        json.dump(cache, f, indent=2, ensure_ascii=False)
+
+
+def cache_key(artist: str, title: str) -> str:
+    return f"{artist} /// {title}"
+
+
 def main():
     client_id = os.environ.get("SPOTIFY_CLIENT_ID")
     client_secret = os.environ.get("SPOTIFY_CLIENT_SECRET")
@@ -67,7 +86,8 @@ def main():
     with open("collection.json") as f:
         collection = json.load(f)
 
-    print(f"Loaded {len(collection)} releases")
+    cache = load_cache()
+    print(f"Loaded {len(collection)} releases ({len(cache)} cached)")
     print("Authenticating with Spotify...")
     token = get_access_token(client_id, client_secret)
 
@@ -75,38 +95,46 @@ def main():
     session.headers.update({"Authorization": f"Bearer {token}"})
 
     found = 0
+    searched = 0
     for i, release in enumerate(collection):
-        if release.get("spotify_url"):
-            found += 1
-            continue
-
         artist = release["artists"][0] if release["artists"] else ""
         title = release["title"]
+        key = cache_key(artist, title)
+
+        if key in cache:
+            release["spotify_url"] = cache[key]
+            if cache[key]:
+                found += 1
+            continue
 
         try:
             url = search_album(session, artist, title)
         except RuntimeError as e:
             print(f"\n{e}")
-            print(f"Saving progress ({found} found so far)...")
+            print(f"Saving progress...")
             break
 
+        cache[key] = url
         release["spotify_url"] = url
+        searched += 1
 
         if url:
             found += 1
 
         print(f"  [{i + 1}/{len(collection)}] {artist} - {title} -> {'found' if url else 'not found'}")
 
-        if (i + 1) % 50 == 0:
+        if searched % 50 == 0:
+            save_cache(cache)
             with open("collection.json", "w") as f:
                 json.dump(collection, f, indent=2, ensure_ascii=False)
 
         time.sleep(0.1)
 
+    save_cache(cache)
     with open("collection.json", "w") as f:
         json.dump(collection, f, indent=2, ensure_ascii=False)
 
-    print(f"\nDone. {found}/{len(collection)} releases have Spotify URLs.")
+    print(f"\nDone. {found}/{len(collection)} releases have Spotify URLs ({searched} searched this run).")
 
 
 if __name__ == "__main__":

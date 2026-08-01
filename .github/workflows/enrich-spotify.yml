@@ -1,13 +1,10 @@
-name: Process add-requests
+name: Enrich Spotify links
 
 on:
-  schedule:
-    - cron: '0 6 * * *'  # daily at 06:00 UTC
   workflow_dispatch:
 
 permissions:
   contents: write
-  issues: write
   pages: write
   id-token: write
 
@@ -16,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  process-and-deploy:
+  enrich-and-deploy:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -29,14 +26,6 @@ jobs:
 
       - name: Install dependencies
         run: uv sync
-
-      - name: Process add-request issues
-        id: process
-        continue-on-error: true
-        run: uv run python process_requests.py
-        env:
-          GH_TOKEN: ${{ secrets.GH_ISSUES_TOKEN }}
-          DISCOGS_TOKEN: ${{ secrets.DISCOGS_TOKEN }}
 
       - name: Export Discogs collection
         run: uv run python export_collection.py
@@ -73,9 +62,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
-
-      - name: Fail if any requests could not be processed
-        if: steps.process.outcome == 'failure'
-        run: |
-          echo "::error::Some add-requests failed to process. Check open issues with the 'needs-attention' label."
-          exit 1
