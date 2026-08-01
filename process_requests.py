@@ -37,7 +37,11 @@ def fetch_open_requests(gh: requests.Session) -> list[dict]:
         params={"labels": "library-addition-request", "state": "open", "per_page": 50},
     )
     resp.raise_for_status()
-    return resp.json()
+    issues = resp.json()
+    return [
+        i for i in issues
+        if not any(l["name"] == "needs-attention" for l in i.get("labels", []))
+    ]
 
 
 def search_discogs(discogs: requests.Session, query: str) -> dict | None:
@@ -147,6 +151,17 @@ def close_issue(gh: requests.Session, issue_number: int, comment: str):
     )
 
 
+def flag_issue(gh: requests.Session, issue_number: int, comment: str):
+    gh.post(
+        f"{GITHUB_API}/repos/{REPO}/issues/{issue_number}/comments",
+        json={"body": comment},
+    )
+    gh.post(
+        f"{GITHUB_API}/repos/{REPO}/issues/{issue_number}/labels",
+        json={"labels": ["needs-attention"]},
+    )
+
+
 def parse_request(issue: dict) -> tuple[str, dict]:
     title = issue["title"]
     for prefix in ("Add:", "add:", "Add ", "add "):
@@ -192,6 +207,8 @@ def main():
     field_ids = fetch_field_ids(discogs, username)
     print(f"Field IDs: {field_ids}")
 
+    failures = []
+
     for issue in issues:
         query, custom_fields = parse_request(issue)
         print(f"\nProcessing #{issue['number']}: \"{query}\"")
@@ -202,12 +219,14 @@ def main():
         time.sleep(1)
 
         if not result:
-            close_issue(
+            flag_issue(
                 gh, issue["number"],
                 f"Could not find a Discogs release matching: **{query}**\n\n"
-                f"Please try a more specific query (e.g. include artist and album title).",
+                f"Please edit the issue title with a more specific query "
+                f"(e.g. include artist and album title) and remove the `needs-attention` label to retry.",
             )
-            print(f"  No results found, issue closed with message")
+            failures.append(f"#{issue['number']}: no match for \"{query}\"")
+            print(f"  No results found, issue left open")
             continue
 
         release_id = result["id"]
@@ -240,12 +259,21 @@ def main():
             close_issue(gh, issue["number"], comment)
             print(f"  Added and issue closed")
         else:
-            close_issue(
+            flag_issue(
                 gh, issue["number"],
-                f"Found **{title}** ({year}) but failed to add to collection. "
-                f"Please try manually: https://www.discogs.com/release/{release_id}",
+                f"Found **{title}** ({year}) but failed to add to collection.\n\n"
+                f"Discogs release: https://www.discogs.com/release/{release_id}\n\n"
+                f"Remove the `needs-attention` label to retry, or add manually.",
             )
-            print(f"  Failed to add, issue closed with error")
+            failures.append(f"#{issue['number']}: failed to add \"{title}\"")
+            print(f"  Failed to add, issue left open")
+
+    if failures:
+        print(f"\n{'='*50}")
+        print(f"FAILED ({len(failures)}):")
+        for f in failures:
+            print(f"  - {f}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
