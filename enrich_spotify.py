@@ -80,6 +80,7 @@ def main():
     session.headers.update({"Authorization": f"Bearer {token}"})
 
     found = 0
+    rate_limited = False
     for i, release in enumerate(to_enrich):
         artist = release["artists"][0] if release["artists"] else ""
         title = release["title"]
@@ -89,6 +90,7 @@ def main():
         except RuntimeError as e:
             print(f"\n{e}")
             print(f"Saving progress...")
+            rate_limited = True
             break
 
         release["spotify_url"] = url
@@ -107,7 +109,12 @@ def main():
     with open("collection.json", "w") as f:
         json.dump(collection, f, indent=2, ensure_ascii=False)
 
+    remaining = len(to_enrich) - found - (len(to_enrich) - i - 1 if not rate_limited else 0)
     print(f"\nDone. Enriched {found} of {len(to_enrich)} new releases with Spotify URLs.")
+
+    if rate_limited:
+        print(f"::warning::Spotify rate limit hit. {len(to_enrich) - i - 1} releases still need enrichment. Re-run later.")
+        sys.exit(2)
 
 
 if __name__ == "__main__":

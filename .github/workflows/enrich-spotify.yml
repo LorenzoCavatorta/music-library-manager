@@ -28,6 +28,8 @@ jobs:
         run: uv sync
 
       - name: Enrich with Spotify links
+        id: enrich
+        continue-on-error: true
         run: uv run python enrich_spotify.py
         env:
           SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
@@ -57,3 +59,8 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+      - name: Warn if enrichment was incomplete
+        if: steps.enrich.outcome == 'failure'
+        run: |
+          echo "::warning::Spotify enrichment was incomplete (likely rate-limited). Re-run later to finish."
