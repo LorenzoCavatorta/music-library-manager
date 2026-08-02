@@ -12,6 +12,5 @@ wheels/
 # Secrets
 .env
 
-# Data files (re-generated in CI)
-collection.json
+# Generated in CI from collection.json
 site/collection.enc.json

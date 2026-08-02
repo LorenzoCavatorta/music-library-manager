@@ -29,11 +29,6 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: Export Discogs collection
-        run: uv run python export_collection.py
-        env:
-          DISCOGS_TOKEN: ${{ secrets.DISCOGS_TOKEN }}
-
       - name: Encrypt collection
         run: uv run python encrypt_collection.py
         env:

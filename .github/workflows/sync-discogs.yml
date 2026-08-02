@@ -1,4 +1,4 @@
-name: Enrich Spotify links
+name: Sync from Discogs
 
 on:
   workflow_dispatch:
@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  enrich-and-deploy:
+  sync-and-deploy:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -27,18 +27,17 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: Enrich with Spotify links
-        run: uv run python enrich_spotify.py
+      - name: Sync collection from Discogs
+        run: uv run python sync_collection.py
         env:
-          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
-          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+          DISCOGS_TOKEN: ${{ secrets.DISCOGS_TOKEN }}
 
       - name: Commit collection updates
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add collection.json
-          git diff --cached --quiet || git commit -m "Enrich Spotify links" && git push
+          git diff --cached --quiet || git commit -m "Sync collection from Discogs" && git push
 
       - name: Encrypt collection
         run: uv run python encrypt_collection.py

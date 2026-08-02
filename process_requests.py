@@ -1,5 +1,6 @@
-"""Process 'add-request' GitHub issues: search Discogs, add to collection, close issue."""
+"""Process 'add-request' GitHub issues: search Discogs, add to collection, update collection.json."""
 
+import base64
 import json
 import os
 import sys
@@ -9,7 +10,10 @@ import requests
 
 GITHUB_API = "https://api.github.com"
 DISCOGS_API = "https://api.discogs.com"
+SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
+SPOTIFY_SEARCH_URL = "https://api.spotify.com/v1/search"
 REPO = "LorenzoCavatorta/music-library-manager"
+COLLECTION_PATH = "collection.json"
 
 
 def get_github_session(token: str) -> requests.Session:
@@ -42,6 +46,13 @@ def fetch_open_requests(gh: requests.Session) -> list[dict]:
         i for i in issues
         if not any(l["name"] == "needs-attention" for l in i.get("labels", []))
     ]
+
+
+def fetch_release_details(discogs: requests.Session, release_id: int) -> dict | None:
+    resp = discogs.get(f"{DISCOGS_API}/releases/{release_id}")
+    if resp.status_code == 200:
+        return resp.json()
+    return None
 
 
 def search_discogs(discogs: requests.Session, query: str) -> dict | None:
@@ -182,6 +193,94 @@ def parse_request(issue: dict) -> tuple[str, dict]:
     return title.strip(), custom_fields
 
 
+def get_spotify_url(artist: str, title: str) -> str | None:
+    client_id = os.environ.get("SPOTIFY_CLIENT_ID")
+    client_secret = os.environ.get("SPOTIFY_CLIENT_SECRET")
+    if not client_id or not client_secret:
+        return None
+
+    resp = requests.post(
+        SPOTIFY_TOKEN_URL,
+        data={"grant_type": "client_credentials"},
+        headers={
+            "Authorization": "Basic "
+            + base64.b64encode(f"{client_id}:{client_secret}".encode()).decode(),
+        },
+        timeout=(5, 10),
+    )
+    if resp.status_code != 200:
+        return None
+
+    token = resp.json()["access_token"]
+    query = f"artist:{artist} album:{title}"
+    resp = requests.get(
+        SPOTIFY_SEARCH_URL,
+        params={"q": query, "type": "album", "limit": 1},
+        headers={"Authorization": f"Bearer {token}"},
+        timeout=(5, 10),
+    )
+    if resp.status_code != 200:
+        return None
+
+    items = resp.json().get("albums", {}).get("items", [])
+    if not items:
+        return None
+    return items[0]["external_urls"].get("spotify")
+
+
+def load_collection() -> list[dict]:
+    if os.path.exists(COLLECTION_PATH):
+        with open(COLLECTION_PATH) as f:
+            return json.load(f)
+    return []
+
+
+def save_collection(collection: list[dict]):
+    with open(COLLECTION_PATH, "w") as f:
+        json.dump(collection, f, indent=2, ensure_ascii=False)
+
+
+def add_to_collection_json(release_info: dict, custom_fields: dict, spotify_url: str | None):
+    collection = load_collection()
+    release_id = release_info["id"]
+
+    if any(r["id"] == release_id for r in collection):
+        print(f"  Already in collection.json")
+        return
+
+    artists = release_info.get("artists", release_info.get("artists_sort", []))
+    if isinstance(artists, list) and artists and isinstance(artists[0], dict):
+        artists = [a["name"] for a in artists]
+    elif isinstance(artists, str):
+        artists = [artists]
+
+    labels = release_info.get("labels", [])
+    if labels and isinstance(labels[0], dict):
+        labels = [l["name"] for l in labels]
+
+    formats = release_info.get("formats", [])
+    if formats and isinstance(formats[0], dict):
+        formats = [f["name"] for f in formats]
+
+    record = {
+        "id": release_id,
+        "title": release_info.get("title", ""),
+        "artists": artists,
+        "year": release_info.get("year", 0),
+        "labels": labels,
+        "formats": formats,
+        "genres": release_info.get("genres", []),
+        "styles": release_info.get("styles", []),
+        "custom_fields": custom_fields,
+    }
+    if spotify_url:
+        record["spotify_url"] = spotify_url
+
+    collection.append(record)
+    save_collection(collection)
+    print(f"  Added to collection.json ({len(collection)} total)")
+
+
 def main():
     gh_token = os.environ.get("GH_TOKEN")
     discogs_token = os.environ.get("DISCOGS_TOKEN")
@@ -246,10 +345,33 @@ def main():
                 if rating_str and rating_str.isdigit():
                     set_rating(discogs, username, instance, int(rating_str))
 
+            release_details = fetch_release_details(discogs, release_id)
+            time.sleep(1)
+
+            if release_details:
+                artist_name = release_details["artists"][0]["name"] if release_details.get("artists") else ""
+                album_title = release_details.get("title", "")
+            else:
+                parts = result.get("title", "").split(" - ", 1)
+                artist_name = parts[0] if len(parts) == 2 else ""
+                album_title = parts[-1]
+
+            spotify_url = get_spotify_url(artist_name, album_title)
+            if spotify_url:
+                print(f"  Spotify: {spotify_url}")
+
+            add_to_collection_json(
+                release_details or result,
+                custom_fields,
+                spotify_url,
+            )
+
             comment = (
                 f"Added to collection: **{title}** ({year})\n\n"
                 f"Discogs release: https://www.discogs.com/release/{release_id}\n"
             )
+            if spotify_url:
+                comment += f"Spotify: {spotify_url}\n"
             if custom_fields:
                 comment += "\nCustom fields set:\n"
                 for k, v in custom_fields.items():

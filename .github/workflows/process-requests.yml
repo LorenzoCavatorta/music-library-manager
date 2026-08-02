@@ -37,24 +37,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_ISSUES_TOKEN }}
           DISCOGS_TOKEN: ${{ secrets.DISCOGS_TOKEN }}
-
-      - name: Export Discogs collection
-        run: uv run python export_collection.py
-        env:
-          DISCOGS_TOKEN: ${{ secrets.DISCOGS_TOKEN }}
-
-      - name: Enrich with Spotify links
-        run: uv run python enrich_spotify.py
-        env:
           SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
           SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
 
-      - name: Commit Spotify cache
+      - name: Commit collection updates
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add spotify_cache.json
-          git diff --cached --quiet || git commit -m "Update Spotify cache" && git push
+          git add collection.json
+          git diff --cached --quiet || git commit -m "Update collection" && git push
 
       - name: Encrypt collection
         run: uv run python encrypt_collection.py
