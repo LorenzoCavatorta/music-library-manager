@@ -1,12 +1,10 @@
-"""Sync collection from Discogs, preserving repo-only fields (e.g. spotify_url)."""
+"""Sync collection from Discogs, preserving any repo-only fields."""
 
 import json
 import os
 import sys
 
 from export_collection import fetch_collection, fetch_identity, get_session, resolve_field_names
-
-REPO_ONLY_FIELDS = {"spotify_url"}
 
 
 def main():
@@ -33,9 +31,9 @@ def main():
     for release in releases:
         old = existing.get(release["id"])
         if old:
-            for field in REPO_ONLY_FIELDS:
-                if field in old:
-                    release[field] = old[field]
+            for field, value in old.items():
+                if field not in release:
+                    release[field] = value
 
     with open("collection.json", "w") as f:
         json.dump(releases, f, indent=2, ensure_ascii=False)
