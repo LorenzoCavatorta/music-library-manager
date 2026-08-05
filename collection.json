@@ -36562,5 +36562,62 @@
     "date_added": "2019-12-01T22:28:21-08:00",
     "custom_fields": {},
     "spotify_url": "https://open.spotify.com/album/3UFMHGDIZozNFh60qhqwRH"
+  },
+  {
+    "id": 2871890,
+    "title": "Whokill",
+    "artists": [
+      "Tune-Yards"
+    ],
+    "year": 2011,
+    "labels": [
+      "4AD"
+    ],
+    "formats": [
+      "CD"
+    ],
+    "genres": [
+      "Electronic",
+      "Rock"
+    ],
+    "styles": [
+      "Art Rock",
+      "Indie Rock",
+      "Experimental"
+    ],
+    "custom_fields": {
+      "Feeling": "Energy",
+      "MyGeneres": "Psychedelic",
+      "Instruments": "Main voice (Female)",
+      "Rating": "4"
+    }
+  },
+  {
+    "id": 2117366,
+    "title": "Odd Blood",
+    "artists": [
+      "Yeasayer"
+    ],
+    "year": 2010,
+    "labels": [
+      "Secretly Canadian"
+    ],
+    "formats": [
+      "Vinyl"
+    ],
+    "genres": [
+      "Electronic",
+      "Rock"
+    ],
+    "styles": [
+      "Indie Rock"
+    ],
+    "custom_fields": {
+      "Feeling": "Positive",
+      "MyGeneres": "Rock",
+      "Instruments": "Full band (rock formation)",
+      "Rating": "3"
+    },
+    "spotify_url": "https://open.spotify.com/album/4OTfa7TIDrZjGKCDu8dUqG"
   }
 ]
