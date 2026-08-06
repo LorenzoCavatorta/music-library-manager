@@ -137,7 +137,7 @@
             <h3 class="font-display text-xl mb-2">Add album to library</h3>
             <p class="text-sm text-base-content/60 mb-4">It will be searched on Discogs and added to your collection within a day.</p>
             <div class="flex flex-col gap-3">
-                <input type="text" id="addQuery" placeholder="Artist - Title (e.g. TEED - Trouble)" class="input input-bordered w-full">
+                <input type="text" id="addQuery" placeholder="Artist - Title or Spotify link" class="input input-bordered w-full">
                 <div class="grid grid-cols-2 gap-3">
                     <select id="addFeeling" class="select select-bordered select-sm w-full"><option value="">Feeling</option></select>
                     <select id="addGenre" class="select select-bordered select-sm w-full"><option value="">Genre</option></select>
@@ -435,11 +435,14 @@
             btn.classList.add("loading");
             status.textContent = "";
 
+            const spotifyMatch = query.match(/https:\/\/open\.spotify\.com\/album\/([a-zA-Z0-9]+)/);
+
             const fields = [];
             if (feeling) fields.push(`- **Feeling:** ${feeling}`);
             if (genre) fields.push(`- **MyGeneres:** ${genre}`);
             if (instruments) fields.push(`- **Instruments:** ${instruments}`);
             if (rating) fields.push(`- **Rating:** ${rating}`);
+            if (spotifyMatch) fields.push(`- **SpotifyURL:** ${spotifyMatch[0]}`);
             const body = fields.length ? `### Custom fields\n\n${fields.join("\n")}` : "";
 
             try {

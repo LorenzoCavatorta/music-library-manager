@@ -3,6 +3,7 @@
 import base64
 import json
 import os
+import re
 import sys
 import time
 
@@ -190,10 +191,18 @@ def parse_request(issue: dict) -> tuple[str, dict]:
             if value:
                 custom_fields[key] = value
 
-    return title.strip(), custom_fields
+    spotify_url = custom_fields.pop("SpotifyURL", None)
+    if not spotify_url:
+        match = re.search(r"https://open\.spotify\.com/album/[a-zA-Z0-9]+[\S]*", title)
+        if match:
+            spotify_url = re.match(r"https://open\.spotify\.com/album/[a-zA-Z0-9]+", match.group(0)).group(0)
+            title = title.replace(match.group(0), "").strip(" -–—?&")
+
+    return title.strip(), custom_fields, spotify_url
 
 
-def get_spotify_url(artist: str, title: str) -> str | None:
+def get_spotify_album_info(spotify_url: str) -> tuple[str, str] | None:
+    """Fetch artist and title from a Spotify album URL."""
     client_id = os.environ.get("SPOTIFY_CLIENT_ID")
     client_secret = os.environ.get("SPOTIFY_CLIENT_SECRET")
     if not client_id or not client_secret:
@@ -212,20 +221,66 @@ def get_spotify_url(artist: str, title: str) -> str | None:
         return None
 
     token = resp.json()["access_token"]
-    query = f"artist:{artist} album:{title}"
+    album_id = spotify_url.rstrip("/").split("/")[-1].split("?")[0]
     resp = requests.get(
-        SPOTIFY_SEARCH_URL,
-        params={"q": query, "type": "album", "limit": 1},
+        f"https://api.spotify.com/v1/albums/{album_id}",
         headers={"Authorization": f"Bearer {token}"},
         timeout=(5, 10),
     )
     if resp.status_code != 200:
         return None
 
-    items = resp.json().get("albums", {}).get("items", [])
-    if not items:
+    data = resp.json()
+    artist = data["artists"][0]["name"] if data.get("artists") else ""
+    title = data.get("name", "")
+    return artist, title
+
+
+def clean_discogs_artist(name: str) -> str:
+    return re.sub(r"\s*\(\d+\)$", "", name)
+
+
+def get_spotify_url(artist: str, title: str) -> str | None:
+    client_id = os.environ.get("SPOTIFY_CLIENT_ID")
+    client_secret = os.environ.get("SPOTIFY_CLIENT_SECRET")
+    if not client_id or not client_secret:
         return None
-    return items[0]["external_urls"].get("spotify")
+
+    artist = clean_discogs_artist(artist)
+
+    resp = requests.post(
+        SPOTIFY_TOKEN_URL,
+        data={"grant_type": "client_credentials"},
+        headers={
+            "Authorization": "Basic "
+            + base64.b64encode(f"{client_id}:{client_secret}".encode()).decode(),
+        },
+        timeout=(5, 10),
+    )
+    if resp.status_code != 200:
+        return None
+
+    token = resp.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    queries = [
+        f"artist:{artist} album:{title}",
+        f"{artist} {title}",
+    ]
+    for query in queries:
+        resp = requests.get(
+            SPOTIFY_SEARCH_URL,
+            params={"q": query, "type": "album", "limit": 1},
+            headers=headers,
+            timeout=(5, 10),
+        )
+        if resp.status_code != 200:
+            return None
+        items = resp.json().get("albums", {}).get("items", [])
+        if items:
+            return items[0]["external_urls"].get("spotify")
+
+    return None
 
 
 def load_collection() -> list[dict]:
@@ -240,7 +295,9 @@ def save_collection(collection: list[dict]):
         json.dump(collection, f, indent=2, ensure_ascii=False)
 
 
-def add_to_collection_json(release_info: dict, custom_fields: dict, spotify_url: str | None):
+def add_to_collection_json(
+    release_info: dict, search_result: dict | None, custom_fields: dict, spotify_url: str | None,
+):
     collection = load_collection()
     release_id = release_info["id"]
 
@@ -262,6 +319,18 @@ def add_to_collection_json(release_info: dict, custom_fields: dict, spotify_url:
     if formats and isinstance(formats[0], dict):
         formats = [f["name"] for f in formats]
 
+    images = release_info.get("images", [])
+    if images:
+        primary = next((img for img in images if img.get("type") == "primary"), images[0])
+        cover_image = primary.get("uri", "")
+        thumb = primary.get("uri150", "")
+    elif search_result:
+        cover_image = search_result.get("cover_image", "")
+        thumb = search_result.get("thumb", "")
+    else:
+        cover_image = ""
+        thumb = ""
+
     record = {
         "id": release_id,
         "title": release_info.get("title", ""),
@@ -271,6 +340,8 @@ def add_to_collection_json(release_info: dict, custom_fields: dict, spotify_url:
         "formats": formats,
         "genres": release_info.get("genres", []),
         "styles": release_info.get("styles", []),
+        "cover_image": cover_image,
+        "thumb": thumb,
         "custom_fields": custom_fields,
     }
     if spotify_url:
@@ -309,10 +380,27 @@ def main():
     failures = []
 
     for issue in issues:
-        query, custom_fields = parse_request(issue)
+        query, custom_fields, provided_spotify_url = parse_request(issue)
         print(f"\nProcessing #{issue['number']}: \"{query}\"")
+        if provided_spotify_url:
+            print(f"  Spotify URL provided: {provided_spotify_url}")
         if custom_fields:
             print(f"  Fields: {custom_fields}")
+
+        if not query and provided_spotify_url:
+            info = get_spotify_album_info(provided_spotify_url)
+            if info:
+                query = f"{info[0]} - {info[1]}"
+                print(f"  Resolved from Spotify: \"{query}\"")
+            else:
+                flag_issue(
+                    gh, issue["number"],
+                    f"Could not fetch album info from Spotify URL: {provided_spotify_url}\n\n"
+                    f"Please also include artist and album title.",
+                )
+                failures.append(f"#{issue['number']}: failed to resolve Spotify URL")
+                print(f"  Could not resolve Spotify URL")
+                continue
 
         result = search_discogs(discogs, query)
         time.sleep(1)
@@ -348,20 +436,24 @@ def main():
             release_details = fetch_release_details(discogs, release_id)
             time.sleep(1)
 
-            if release_details:
-                artist_name = release_details["artists"][0]["name"] if release_details.get("artists") else ""
-                album_title = release_details.get("title", "")
+            if provided_spotify_url:
+                spotify_url = provided_spotify_url
             else:
-                parts = result.get("title", "").split(" - ", 1)
-                artist_name = parts[0] if len(parts) == 2 else ""
-                album_title = parts[-1]
+                if release_details:
+                    artist_name = release_details["artists"][0]["name"] if release_details.get("artists") else ""
+                    album_title = release_details.get("title", "")
+                else:
+                    parts = result.get("title", "").split(" - ", 1)
+                    artist_name = parts[0] if len(parts) == 2 else ""
+                    album_title = parts[-1]
+                spotify_url = get_spotify_url(artist_name, album_title)
 
-            spotify_url = get_spotify_url(artist_name, album_title)
             if spotify_url:
                 print(f"  Spotify: {spotify_url}")
 
             add_to_collection_json(
                 release_details or result,
+                result,
                 custom_fields,
                 spotify_url,
             )

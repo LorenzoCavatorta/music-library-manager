@@ -36590,7 +36590,9 @@
       "MyGeneres": "Psychedelic",
       "Instruments": "Main voice (Female)",
       "Rating": "4"
-    }
+    },
+    "cover_image": "https://i.discogs.com/8H-hq-uK1oboxFP3XuWHn8_gL1AHNB2fSDfLXxA5uKM/rs:fit/g:sm/q:90/h:500/w:500/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI4NzE4/OTAtMTMwNDk3MDMw/My5qcGVn.jpeg",
+    "thumb": "https://i.discogs.com/pE5q0iCdHxjlxKrqmB2cvNeSHn7noXo0T_GEfVSFiII/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI4NzE4/OTAtMTMwNDk3MDMw/My5qcGVn.jpeg"
   },
   {
     "id": 2117366,
@@ -36618,6 +36620,8 @@
       "Instruments": "Full band (rock formation)",
       "Rating": "3"
     },
-    "spotify_url": "https://open.spotify.com/album/4OTfa7TIDrZjGKCDu8dUqG"
+    "spotify_url": "https://open.spotify.com/album/4OTfa7TIDrZjGKCDu8dUqG",
+    "cover_image": "https://i.discogs.com/Yzu-hWl6-SgqpThoaL76wZSCNKFMcoqg2355QcKBg8E/rs:fit/g:sm/q:90/h:600/w:598/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIxMTcz/NjYtMTU5Nzk2ODI2/OC05ODk0LmpwZWc.jpeg",
+    "thumb": "https://i.discogs.com/Wp4VuaLNnvxHKNipuks3v21DGkeSzzl4_dderwGOsvY/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIxMTcz/NjYtMTU5Nzk2ODI2/OC05ODk0LmpwZWc.jpeg"
   }
 ]

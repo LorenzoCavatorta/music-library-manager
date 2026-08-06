@@ -3,6 +3,7 @@
 import base64
 import json
 import os
+import re
 import sys
 import time
 
@@ -27,28 +28,35 @@ def get_access_token(client_id: str, client_secret: str) -> str:
 
 
 def search_album(session: requests.Session, artist: str, title: str) -> str | None:
-    query = f"artist:{artist} album:{title}"
-    try:
-        resp = session.get(SEARCH_URL, params={"q": query, "type": "album", "limit": 1}, timeout=(5, 10))
-    except requests.exceptions.Timeout:
-        return None
+    queries = [
+        f"artist:{artist} album:{title}",
+        f"{artist} {title}",
+    ]
+    for query in queries:
+        try:
+            resp = session.get(SEARCH_URL, params={"q": query, "type": "album", "limit": 1}, timeout=(5, 10))
+        except requests.exceptions.Timeout:
+            return None
 
-    if resp.status_code == 429:
-        retry_after = int(resp.headers.get("Retry-After", 5))
-        if retry_after > 60:
-            raise RuntimeError(f"Rate limited for {retry_after}s — try again later")
-        print(f"  Rate limited, waiting {retry_after}s...")
-        time.sleep(retry_after)
-        return search_album(session, artist, title)
+        if resp.status_code == 429:
+            retry_after = int(resp.headers.get("Retry-After", 5))
+            if retry_after > 60:
+                raise RuntimeError(f"Rate limited for {retry_after}s — try again later")
+            print(f"  Rate limited, waiting {retry_after}s...")
+            time.sleep(retry_after)
+            try:
+                resp = session.get(SEARCH_URL, params={"q": query, "type": "album", "limit": 1}, timeout=(5, 10))
+            except requests.exceptions.Timeout:
+                return None
 
-    if resp.status_code != 200:
-        return None
+        if resp.status_code != 200:
+            return None
 
-    items = resp.json().get("albums", {}).get("items", [])
-    if not items:
-        return None
+        items = resp.json().get("albums", {}).get("items", [])
+        if items:
+            return items[0]["external_urls"].get("spotify")
 
-    return items[0]["external_urls"].get("spotify")
+    return None
 
 
 def main():
@@ -82,7 +90,7 @@ def main():
     found = 0
     rate_limited = False
     for i, release in enumerate(to_enrich):
-        artist = release["artists"][0] if release["artists"] else ""
+        artist = re.sub(r"\s*\(\d+\)$", "", release["artists"][0]) if release["artists"] else ""
         title = release["title"]
 
         try:
