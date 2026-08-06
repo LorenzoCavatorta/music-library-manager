@@ -481,7 +481,7 @@
                         <div class="dropdown-menu" id="ratingMenu"></div>
                     </div>
                     <div class="dropdown" id="sortDropdown">
-                        <button class="btn" onclick="toggleMenu('sort')"><span id="sortLabel">Date added</span> <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:10px;height:10px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></button>
+                        <button class="btn" onclick="toggleMenu('sort')"><span id="sortLabel">Random</span> <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:10px;height:10px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></button>
                         <div class="dropdown-menu" id="sortMenu"></div>
                     </div>
                     <input type="text" id="search" placeholder="Search..." class="search-input">
@@ -527,7 +527,7 @@
         let collection = [];
         const selected = { feeling: new Set(), genre: new Set() };
         let currentRating = 0;
-        let currentSort = "added";
+        let currentSort = "random";
         let ghIssueToken = null;
         let fieldConfig = null;
 
@@ -601,6 +601,7 @@
                 {value: "5", label: "5 stars"},
             ]);
             buildRadioMenu("sort", [
+                {value: "random", label: "Random"},
                 {value: "added", label: "Date added"},
                 {value: "rating", label: "Rating"},
                 {value: "artist", label: "Artist"},
@@ -622,7 +623,7 @@
             const menu = document.getElementById(type + "Menu");
             menu.innerHTML = options.map(opt => `
                 <label class="dropdown-item">
-                    <input type="radio" name="${type}" value="${opt.value}" ${opt.value === (type === "rating" ? "0" : "added") ? "checked" : ""} onchange="selectRadio('${type}', this.value, '${esc(opt.label)}')">
+                    <input type="radio" name="${type}" value="${opt.value}" ${opt.value === (type === "rating" ? "0" : "random") ? "checked" : ""} onchange="selectRadio('${type}', this.value, '${esc(opt.label)}')">
                     <span>${esc(opt.label)}</span>
                 </label>
             `).join("");
@@ -734,7 +735,12 @@
                 if (minRating && (r.rating || 0) < minRating) return false;
                 return true;
             });
-            if (currentSort === "rating") filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+            if (currentSort === "random") {
+                for (let i = filtered.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+                }
+            } else if (currentSort === "rating") filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
             else if (currentSort === "artist") filtered.sort((a, b) => a.artists[0].localeCompare(b.artists[0]));
             else if (currentSort === "year") filtered.sort((a, b) => (b.year || 0) - (a.year || 0));
             document.getElementById("count").textContent = `${filtered.length} / ${collection.length}`;
