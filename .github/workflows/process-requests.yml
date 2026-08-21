@@ -63,7 +63,7 @@ jobs:
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v6
+        uses: actions/deploy-pages@v5
 
       - name: Fail if any requests could not be processed
         if: steps.process.outcome == 'failure'
