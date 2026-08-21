@@ -197,6 +197,10 @@ def parse_request(issue: dict) -> tuple[str, dict]:
         if match:
             spotify_url = re.match(r"https://open\.spotify\.com/album/[a-zA-Z0-9]+", match.group(0)).group(0)
             title = title.replace(match.group(0), "").strip(" -–—?&")
+    else:
+        match = re.search(r"https://open\.spotify\.com/album/[a-zA-Z0-9]+[\S]*", title)
+        if match:
+            title = title.replace(match.group(0), "").strip(" -–—?&")
 
     return title.strip(), custom_fields, spotify_url
 
