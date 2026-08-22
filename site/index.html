@@ -829,13 +829,13 @@
                 });
 
                 if (resp.ok) {
-                    status.textContent = "Submitted! It will appear within a day.";
-                    status.className = "modal-status success";
                     document.getElementById("addQuery").value = "";
                     document.getElementById("addFeeling").value = "";
                     document.getElementById("addGenre").value = "";
                     document.getElementById("addInstruments").value = "";
                     document.getElementById("addRating").value = "";
+                    status.textContent = "";
+                    closeModal();
                 } else {
                     const err = await resp.json();
                     status.textContent = `Error: ${err.message || resp.status}`;
