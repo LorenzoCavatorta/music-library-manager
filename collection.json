@@ -37334,5 +37334,102 @@
       "Rating": "3"
     },
     "spotify_url": "https://open.spotify.com/album/0LoiHiWrQr7b0a4wlYVqSh"
+  },
+  {
+    "id": 9736659,
+    "title": "Embers",
+    "artists": [
+      "Throwing Snow"
+    ],
+    "year": 2017,
+    "labels": [
+      "Houndstooth"
+    ],
+    "formats": [
+      "All Media",
+      "Vinyl",
+      "Vinyl"
+    ],
+    "genres": [
+      "Electronic"
+    ],
+    "styles": [
+      "Experimental",
+      "IDM"
+    ],
+    "cover_image": "https://i.discogs.com/P-UwmqNmc84zVZbKb37MW1zt96-Ix4h8WCmJzWkdhx8/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTk3MzY2/NTktMTQ4NTU2NzU5/Ni01OTAyLmpwZWc.jpeg",
+    "thumb": "https://i.discogs.com/4L77oEX1o-m0EdH1ISHm52Gzmmz-rLxb92wLiw_B-98/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTk3MzY2/NTktMTQ4NTU2NzU5/Ni01OTAyLmpwZWc.jpeg",
+    "custom_fields": {
+      "Feeling": "Frozen",
+      "MyGeneres": "Electronic",
+      "Instruments": "Electronics",
+      "Rating": "3"
+    },
+    "spotify_url": "https://open.spotify.com/album/7pUfDrwbY9InlwdNTlqm8m"
+  },
+  {
+    "id": 2979143,
+    "title": "The Eraser",
+    "artists": [
+      "Thom Yorke"
+    ],
+    "year": 2006,
+    "labels": [
+      "XL Recordings"
+    ],
+    "formats": [
+      "Vinyl"
+    ],
+    "genres": [
+      "Electronic",
+      "Rock"
+    ],
+    "styles": [
+      "Leftfield",
+      "Art Rock",
+      "Electro",
+      "IDM",
+      "Experimental"
+    ],
+    "cover_image": "https://i.discogs.com/6o5qyjaykCQEC5rnYC3PA4g0DuMVN6CdrzHx4J90VLg/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI5Nzkx/NDMtMTMxMDk3MzM4/Mi5qcGVn.jpeg",
+    "thumb": "https://i.discogs.com/FpTTmOudzDS44xv2_TMnERenuiK8ZHwhyRpXAeyArLE/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI5Nzkx/NDMtMTMxMDk3MzM4/Mi5qcGVn.jpeg",
+    "custom_fields": {
+      "Feeling": "Melancholic",
+      "MyGeneres": "Indie",
+      "Instruments": "Singer-songwriter (experimental)",
+      "Rating": "3"
+    },
+    "spotify_url": "https://open.spotify.com/album/4X8Y79gWo6xm7Osdapg58E"
+  },
+  {
+    "id": 10535246,
+    "title": "Moonshine Freeze",
+    "artists": [
+      "This Is The Kit"
+    ],
+    "year": 2017,
+    "labels": [
+      "Rough Trade"
+    ],
+    "formats": [
+      "Vinyl"
+    ],
+    "genres": [
+      "Pop",
+      "Folk, World, & Country"
+    ],
+    "styles": [
+      "Indie Pop",
+      "Folk"
+    ],
+    "cover_image": "https://i.discogs.com/sx_v8n4737_M3xPYBBUxEWyiN0LnAw8SvIXiZs7Oy44/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEwNTM1/MjQ2LTE0OTk0MjI1/ODMtNTIxNS5qcGVn.jpeg",
+    "thumb": "https://i.discogs.com/P8F_s0r4W6ryuCp8eyal0YBxqKTelmNk6am1CZaxIBo/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEwNTM1/MjQ2LTE0OTk0MjI1/ODMtNTIxNS5qcGVn.jpeg",
+    "custom_fields": {
+      "Feeling": "Intimate (warm)",
+      "MyGeneres": "Folk",
+      "Instruments": "Singer-songwriter",
+      "Rating": "4"
+    },
+    "spotify_url": "https://open.spotify.com/album/5RYg5ZR0qfRebkseuqlGJj"
   }
 ]
