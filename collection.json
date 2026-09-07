@@ -37553,5 +37553,37 @@
       "Rating": "2"
     },
     "spotify_url": "https://open.spotify.com/album/5yHH2l3d2d2K5tNQGorEdR"
+  },
+  {
+    "id": 36416089,
+    "title": "Trouble",
+    "artists": [
+      "Totally Enormous Extinct Dinosaurs"
+    ],
+    "year": 2026,
+    "labels": [
+      "Polydor"
+    ],
+    "formats": [
+      "Vinyl"
+    ],
+    "genres": [
+      "Electronic"
+    ],
+    "styles": [
+      "Ambient",
+      "Electro",
+      "House",
+      "Trance"
+    ],
+    "cover_image": "https://i.discogs.com/rU3u1NwUsT7eFJ0y-XGPTC08fRqW8GHETo-bFTbVp0Y/rs:fit/g:sm/q:90/h:600/w:588/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM2NDE2/MDg5LTE3NzAzMjg3/NjctNTUxOC5qcGVn.jpeg",
+    "thumb": "https://i.discogs.com/9rmJ6enk-9QuK7mGbqyKbKcNcyFso1UD_GmLnOEnSOM/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM2NDE2/MDg5LTE3NzAzMjg3/NjctNTUxOC5qcGVn.jpeg",
+    "custom_fields": {
+      "Feeling": "Party (if you're weird)",
+      "MyGeneres": "Electronic",
+      "Instruments": "Electronics",
+      "Rating": "4"
+    },
+    "spotify_url": "https://open.spotify.com/album/1srFzlchwSOzxO8n99tJxP"
   }
 ]
