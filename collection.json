@@ -37585,5 +37585,130 @@
       "Rating": "4"
     },
     "spotify_url": "https://open.spotify.com/album/1srFzlchwSOzxO8n99tJxP"
+  },
+  {
+    "id": 11682146,
+    "title": "The Free Life",
+    "artists": [
+      "Turbowolf"
+    ],
+    "year": 2018,
+    "labels": [
+      "So Recordings"
+    ],
+    "formats": [
+      "Vinyl"
+    ],
+    "genres": [
+      "Rock"
+    ],
+    "styles": [
+      "Psychedelic Rock",
+      "Alternative Rock"
+    ],
+    "cover_image": "https://i.discogs.com/qeZKfnmEcNO_l3o8xNDCtQd3o1X-lXKiS0vUjGkPqXI/rs:fit/g:sm/q:90/h:500/w:500/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExNjgy/MTQ2LTE1MjA1ODgx/MjEtMzk2MS5qcGVn.jpeg",
+    "thumb": "https://i.discogs.com/_YRJ0apGQUinK03ObphSiVZR6Vq4rXMGVqPQKxw_Ee0/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExNjgy/MTQ2LTE1MjA1ODgx/MjEtMzk2MS5qcGVn.jpeg",
+    "custom_fields": {
+      "Feeling": "Energy",
+      "MyGeneres": "Rock",
+      "Instruments": "Full band (rock formation)",
+      "Rating": "3"
+    },
+    "spotify_url": "https://open.spotify.com/album/4gT3GcSihWfQqAr5MBWfQ0"
+  },
+  {
+    "id": 1187363,
+    "title": "Old Traditions, New Standards",
+    "artists": [
+      "Tullycraft"
+    ],
+    "year": 1996,
+    "labels": [
+      "Little Teddy Recordings",
+      "Little Teddy Recordings"
+    ],
+    "formats": [
+      "Vinyl"
+    ],
+    "genres": [
+      "Rock",
+      "Pop"
+    ],
+    "styles": [
+      "Indie Pop"
+    ],
+    "cover_image": "https://i.discogs.com/lOGqzEPgLYPkgjs16rp46d-YGKOVp5iXwXuWyoGIKYQ/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExODcz/NjMtMTcyMTAxMDM5/Mi0yNTE3LmpwZWc.jpeg",
+    "thumb": "https://i.discogs.com/L66gmSLjHhBnpaNU8eVZ6LmEnWbF66sWLwc0M1xUMMQ/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExODcz/NjMtMTcyMTAxMDM5/Mi0yNTE3LmpwZWc.jpeg",
+    "custom_fields": {
+      "Feeling": "Spring days",
+      "MyGeneres": "Indie",
+      "Instruments": "Full band (rock formation)",
+      "Rating": "3"
+    },
+    "spotify_url": "https://open.spotify.com/album/5yOy93j2Ff4HBVVPbjXrwC"
+  },
+  {
+    "id": 13554980,
+    "title": "The Destroyer - Part One",
+    "artists": [
+      "Trust (15)"
+    ],
+    "year": 2019,
+    "labels": [
+      "Grouch"
+    ],
+    "formats": [
+      "Vinyl"
+    ],
+    "genres": [
+      "Electronic"
+    ],
+    "styles": [
+      "Darkwave",
+      "Synth-pop",
+      "EBM"
+    ],
+    "cover_image": "https://i.discogs.com/0rYsqFwgCKNsy3ZhucogMfl0n1eMz6qhdma9d1BsEMs/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEzNTU0/OTgwLTE1NTY0MjY3/NTUtMjQ2My5qcGVn.jpeg",
+    "thumb": "https://i.discogs.com/pYT97CYlzmJPO7TQ4PkwQqguas_YyYkHNywU4QV2ML8/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEzNTU0/OTgwLTE1NTY0MjY3/NTUtMjQ2My5qcGVn.jpeg",
+    "custom_fields": {
+      "Feeling": "Frozen",
+      "MyGeneres": "Rock",
+      "Instruments": "Full band (rock formation)",
+      "Rating": "4"
+    },
+    "spotify_url": "https://open.spotify.com/album/5QYWYA7xLfaWdK0WKrreRK"
+  },
+  {
+    "id": 28603678,
+    "title": "Maxinquaye",
+    "artists": [
+      "Tricky"
+    ],
+    "year": 2023,
+    "labels": [
+      "Island Records",
+      "Island Records",
+      "Universal Music Recordings"
+    ],
+    "formats": [
+      "Vinyl"
+    ],
+    "genres": [
+      "Electronic"
+    ],
+    "styles": [
+      "Leftfield",
+      "Downtempo",
+      "Trip Hop"
+    ],
+    "cover_image": "https://i.discogs.com/bpsOrzDYlotAgyL218bZotB-IilLM6PYZm5cPtOJlpE/rs:fit/g:sm/q:90/h:593/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI4NjAz/Njc4LTE2OTczOTQ2/MDUtNDAyNi5qcGVn.jpeg",
+    "thumb": "https://i.discogs.com/DTAvlgGfEW5MltJLEbay3HUkW_JFZkGDooqOWnbFyYQ/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI4NjAz/Njc4LTE2OTczOTQ2/MDUtNDAyNi5qcGVn.jpeg",
+    "custom_fields": {
+      "Feeling": "Melancholic",
+      "MyGeneres": "Trip Pop",
+      "Instruments": "Singer-songwriter (experimental)",
+      "Rating": "4"
+    },
+    "spotify_url": "https://open.spotify.com/album/4pWLQ312KAN43yhm3omkZo"
   }
 ]
