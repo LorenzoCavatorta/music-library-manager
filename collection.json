@@ -37710,5 +37710,99 @@
       "Rating": "4"
     },
     "spotify_url": "https://open.spotify.com/album/4pWLQ312KAN43yhm3omkZo"
+  },
+  {
+    "id": 3147428,
+    "title": "Tidal Rave EP",
+    "artists": [
+      "Unicorn Kid"
+    ],
+    "year": 2011,
+    "labels": [
+      "Not On Label (Unicorn Kid Self-released)"
+    ],
+    "formats": [
+      "CDr"
+    ],
+    "genres": [
+      "Electronic"
+    ],
+    "styles": [
+      "House",
+      "Electro",
+      "Dubstep"
+    ],
+    "cover_image": "https://i.discogs.com/UlFX0rRpKZKjf-aedoGkzPpnnDRkfH9PEySEZg-bmog/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMxNDc0/MjgtMTMyMTEwODU0/Ny5qcGVn.jpeg",
+    "thumb": "https://i.discogs.com/vtKXLCHH3OSjIFqFfhFoJlkLj4NmfRG6-1SVYlycfbw/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMxNDc0/MjgtMTMyMTEwODU0/Ny5qcGVn.jpeg",
+    "custom_fields": {
+      "Feeling": "Hands in the Air",
+      "MyGeneres": "Electronic",
+      "Instruments": "Electronics",
+      "Rating": "5"
+    },
+    "spotify_url": "https://open.spotify.com/album/6qqyiLPWtCapciRWk4YSw1"
+  },
+  {
+    "id": 3303979,
+    "title": "Blowin' Your Mind!",
+    "artists": [
+      "Van Morrison"
+    ],
+    "year": 1967,
+    "labels": [
+      "Bang Records",
+      "Bang Records",
+      "Bang Records",
+      "Bang Records"
+    ],
+    "formats": [
+      "Vinyl"
+    ],
+    "genres": [
+      "Rock"
+    ],
+    "styles": [
+      "Rhythm & Blues",
+      "Pop Rock"
+    ],
+    "cover_image": "https://i.discogs.com/bHqnDUHWoMFkdwhaEmgqYJLXf1PTXW7T7kXQv6YzoBY/rs:fit/g:sm/q:90/h:400/w:388/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMzMDM5/NzktMTMyNDg2Nzg4/Mi5qcGVn.jpeg",
+    "thumb": "https://i.discogs.com/V3o79Uarmg85yoxXIHAkXtRAAUYBg8Ln-I67I6H0s1M/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMzMDM5/NzktMTMyNDg2Nzg4/Mi5qcGVn.jpeg",
+    "custom_fields": {
+      "Feeling": "Positive",
+      "MyGeneres": "Rock",
+      "Instruments": "Singer-songwriter",
+      "Rating": "5"
+    },
+    "spotify_url": "https://open.spotify.com/album/76y5pJydyE27yrXoFiQa8P"
+  },
+  {
+    "id": 6312297,
+    "title": "New Black Rich (Tusks)",
+    "artists": [
+      "Bonnie \"Prince\" Billy"
+    ],
+    "year": 2014,
+    "labels": [
+      "Drag City",
+      "Palace Records"
+    ],
+    "formats": [
+      "Vinyl"
+    ],
+    "genres": [
+      "Folk, World, & Country"
+    ],
+    "styles": [
+      "Country Rock"
+    ],
+    "cover_image": "https://i.discogs.com/DONkrE9zIfOAhWYxxby6o2-xbIaI4eCLjSE0QyG20f0/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTYzMTIy/OTctMTQxNjE5NzYz/NS00NjkxLmpwZWc.jpeg",
+    "thumb": "https://i.discogs.com/rW4-GLARJQGyQCeBI5OCH-ClTu3rAyP-2mrQ0LDDxRo/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTYzMTIy/OTctMTQxNjE5NzYz/NS00NjkxLmpwZWc.jpeg",
+    "custom_fields": {
+      "Feeling": "Dreamy",
+      "MyGeneres": "Pop (electronics)",
+      "Instruments": "Main voice (Female)",
+      "Rating": "3"
+    },
+    "spotify_url": "https://open.spotify.com/album/6YONNEUthiGBPb8NCc5sQV"
   }
 ]
