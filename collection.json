@@ -37804,5 +37804,76 @@
       "Rating": "3"
     },
     "spotify_url": "https://open.spotify.com/album/6YONNEUthiGBPb8NCc5sQV"
+  },
+  {
+    "id": 11063896,
+    "title": "Big Fish Theory",
+    "artists": [
+      "Vince Staples"
+    ],
+    "year": 2017,
+    "labels": [
+      "Def Jam Recordings",
+      "Blacksmith Music"
+    ],
+    "formats": [
+      "Vinyl"
+    ],
+    "genres": [
+      "Electronic",
+      "Hip Hop"
+    ],
+    "styles": [
+      "Hip Hop",
+      "Hip-House",
+      "UK Garage",
+      "Techno",
+      "Experimental",
+      "Deconstructed Club",
+      "Hardcore Hip-Hop",
+      "Hyphy",
+      "Glitch Hop"
+    ],
+    "cover_image": "https://i.discogs.com/3GNzYx9DWUpowqXo6KzMQuxVwWIg2e1klGQadIkX4E8/rs:fit/g:sm/q:90/h:595/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExMDYz/ODk2LTE1NjAzNDc1/NjEtMzkzNy5qcGVn.jpeg",
+    "thumb": "https://i.discogs.com/9-edMWbEJMzIax4sRTYXMOEtjdRMchf1FBmCuo-JHCw/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExMDYz/ODk2LTE1NjAzNDc1/NjEtMzkzNy5qcGVn.jpeg",
+    "custom_fields": {
+      "Feeling": "Groovy",
+      "MyGeneres": "Hip Hop",
+      "Instruments": "Main voice (Male)",
+      "Rating": "4"
+    },
+    "spotify_url": "https://open.spotify.com/album/5h3WJG0aZjNOrayFu3MhCS"
+  },
+  {
+    "id": 7866707,
+    "title": "Summertime '06",
+    "artists": [
+      "Vince Staples"
+    ],
+    "year": 2015,
+    "labels": [
+      "Def Jam Recordings",
+      "Blacksmith Music",
+      "ARTium Recordings"
+    ],
+    "formats": [
+      "Vinyl"
+    ],
+    "genres": [
+      "Hip Hop"
+    ],
+    "styles": [
+      "Gangsta",
+      "Conscious"
+    ],
+    "cover_image": "https://i.discogs.com/MiIe7bf_G03_SQrQHQoHsJDRI40azm9p2DRGlFLS12s/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTc4NjY3/MDctMTQ1MDQ5Nzkz/NS0yOTA1LmpwZWc.jpeg",
+    "thumb": "https://i.discogs.com/yQb4cLxUapiIjnXi_HgdBB8DcHloiIBE5txK7D05lzc/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTc4NjY3/MDctMTQ1MDQ5Nzkz/NS0yOTA1LmpwZWc.jpeg",
+    "custom_fields": {
+      "Feeling": "Melancholic",
+      "MyGeneres": "Hip Hop",
+      "Instruments": "Main voice (Male)",
+      "Rating": "4"
+    },
+    "spotify_url": "https://open.spotify.com/album/4Csoz10NhNJOrCTUoPBdUD"
   }
 ]
