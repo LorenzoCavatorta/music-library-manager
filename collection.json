@@ -37875,5 +37875,64 @@
       "Rating": "4"
     },
     "spotify_url": "https://open.spotify.com/album/4Csoz10NhNJOrCTUoPBdUD"
+  },
+  {
+    "id": 35786233,
+    "title": "Tourist History Deluxe Edition",
+    "artists": [
+      "Two Door Cinema Club"
+    ],
+    "year": 2025,
+    "labels": [
+      "[pias]"
+    ],
+    "formats": [
+      "Vinyl",
+      "Vinyl",
+      "All Media"
+    ],
+    "genres": [
+      "Rock"
+    ],
+    "styles": [
+      "Indie Rock"
+    ],
+    "cover_image": "https://i.discogs.com/xWD8rPBgnXRre-xf6FC58qar364bhMYfL5vp8gih54g/rs:fit/g:sm/q:90/h:600/w:596/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM1Nzg2/MjMzLTE3Njk1NDA0/MDctNjY3NC5qcGVn.jpeg",
+    "thumb": "https://i.discogs.com/GCY9JPNL527PtkevLxr78XqsvCltPcUWthwcGAOQD4c/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM1Nzg2/MjMzLTE3Njk1NDA0/MDctNjY3NC5qcGVn.jpeg",
+    "custom_fields": {
+      "Feeling": "Positive",
+      "MyGeneres": "Indie",
+      "Instruments": "Full band (rock formation)",
+      "Rating": "4"
+    },
+    "spotify_url": "https://open.spotify.com/album/6XFQE0ZYhEwk2hgh0jHgAV"
+  },
+  {
+    "id": 11564458,
+    "title": "In A Poem Unlimited",
+    "artists": [
+      "U.S. Girls"
+    ],
+    "year": 2018,
+    "labels": [
+      "4AD"
+    ],
+    "formats": [
+      "Vinyl"
+    ],
+    "genres": [
+      "Rock",
+      "Pop"
+    ],
+    "styles": [],
+    "cover_image": "https://i.discogs.com/CdBAsInGFbKsYcHYyssXKFhv4NALnqnlGigtF9uvX0g/rs:fit/g:sm/q:90/h:580/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExNTY0/NDU4LTE1MTg1NzE1/MTYtMzk2MS5qcGVn.jpeg",
+    "thumb": "https://i.discogs.com/BQwKiUbbsSd0Gpnsq39npsq9cMIw9HW4-p03AXeVbWw/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExNTY0/NDU4LTE1MTg1NzE1/MTYtMzk2MS5qcGVn.jpeg",
+    "custom_fields": {
+      "Feeling": "Dreamy",
+      "MyGeneres": "Indie",
+      "Instruments": "Full band (rock formation)",
+      "Rating": "4"
+    },
+    "spotify_url": "https://open.spotify.com/album/7nfBuiJV9zINwn2U4vrglR"
   }
 ]
