@@ -37934,5 +37934,68 @@
       "Rating": "4"
     },
     "spotify_url": "https://open.spotify.com/album/7nfBuiJV9zINwn2U4vrglR"
+  },
+  {
+    "id": 3868315,
+    "title": "Toy",
+    "artists": [
+      "TOY (18)"
+    ],
+    "year": 2012,
+    "labels": [
+      "Heavenly"
+    ],
+    "formats": [
+      "Vinyl",
+      "CD"
+    ],
+    "genres": [
+      "Rock"
+    ],
+    "styles": [
+      "Shoegaze",
+      "Indie Rock"
+    ],
+    "cover_image": "https://i.discogs.com/DuIwn0Dc8W5tWflAaIjr4JMbUHTS3Qr7p_7FATb--BI/rs:fit/g:sm/q:90/h:500/w:500/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM4Njgz/MTUtMTM4NjMyNTgz/NC00MTEwLmpwZWc.jpeg",
+    "thumb": "https://i.discogs.com/FiKiAOXZ_zUT44Q_Ra0s3fW0_WeGmH8gcR-91k96zdA/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM4Njgz/MTUtMTM4NjMyNTgz/NC00MTEwLmpwZWc.jpeg",
+    "custom_fields": {
+      "Feeling": "Dreamy",
+      "MyGeneres": "Psychedelic",
+      "Instruments": "Full band (rock formation)",
+      "Rating": "3"
+    },
+    "spotify_url": "https://open.spotify.com/album/4ipM7CJTmNnqA1EbKmko8s"
+  },
+  {
+    "id": 33707319,
+    "title": "Send A Prayer My Way",
+    "artists": [
+      "Julien Baker",
+      "Torres (2)"
+    ],
+    "year": 2025,
+    "labels": [
+      "Matador"
+    ],
+    "formats": [
+      "Vinyl"
+    ],
+    "genres": [
+      "Rock",
+      "Folk, World, & Country"
+    ],
+    "styles": [
+      "Indie Rock",
+      "Country"
+    ],
+    "cover_image": "https://i.discogs.com/USKqfKj72rKUR8SV8AHoOR3XvioGD9rDc7usECBtgwg/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMzNzA3/MzE5LTE3NDQ5MjQ3/NDgtMzE5Ny5qcGVn.jpeg",
+    "thumb": "https://i.discogs.com/OnUmp5y89CpS5zNfSVBN8ORiLtYxZOZy5nT33-Spmq0/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMzNzA3/MzE5LTE3NDQ5MjQ3/NDgtMzE5Ny5qcGVn.jpeg",
+    "custom_fields": {
+      "Feeling": "Travel",
+      "MyGeneres": "Folk",
+      "Instruments": "Singer-songwriter",
+      "Rating": "4"
+    },
+    "spotify_url": "https://open.spotify.com/album/7wVTqZ02NOssDk9xfo9Imf"
   }
 ]
