@@ -37997,5 +37997,37 @@
       "Rating": "4"
     },
     "spotify_url": "https://open.spotify.com/album/7wVTqZ02NOssDk9xfo9Imf"
+  },
+  {
+    "id": 32877246,
+    "title": "Louder, Please",
+    "artists": [
+      "Rose Gray"
+    ],
+    "year": 2025,
+    "labels": [
+      "Play It Again Sam Records"
+    ],
+    "formats": [
+      "Vinyl"
+    ],
+    "genres": [
+      "Electronic",
+      "Pop"
+    ],
+    "styles": [
+      "Synth-pop",
+      "Dance-pop",
+      "House"
+    ],
+    "cover_image": "https://i.discogs.com/t1lmR2tFbP3u5Plfj_wM0exPa-F6dZE0kMQguzqBr8I/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMyODc3/MjQ2LTE3NDk2OTg1/MzUtMjk0Ni5qcGVn.jpeg",
+    "thumb": "https://i.discogs.com/koMcTiLKWIztkdAdvLQWIPrYsMO6Mpr81pSsEqY1E8U/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMyODc3/MjQ2LTE3NDk2OTg1/MzUtMjk0Ni5qcGVn.jpeg",
+    "custom_fields": {
+      "Feeling": "Travel",
+      "MyGeneres": "Pop",
+      "Instruments": "Main voice (Female)",
+      "Rating": "4"
+    },
+    "spotify_url": "https://open.spotify.com/album/5mQKMz8qdYqO6gpbb07DzP"
   }
 ]
