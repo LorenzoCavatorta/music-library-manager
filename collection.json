@@ -38029,5 +38029,36 @@
       "Rating": "4"
     },
     "spotify_url": "https://open.spotify.com/album/5mQKMz8qdYqO6gpbb07DzP"
+  },
+  {
+    "id": 2570117,
+    "title": "Christina Milian",
+    "artists": [
+      "Christina Milian"
+    ],
+    "year": 2002,
+    "labels": [
+      "Def Soul",
+      "The INC Records"
+    ],
+    "formats": [
+      "CD"
+    ],
+    "genres": [
+      "Funk / Soul",
+      "Pop"
+    ],
+    "styles": [
+      "Contemporary R&B"
+    ],
+    "cover_image": "https://i.discogs.com/abrXgBSWI_qKxAkS4MgajQxMVgPCg97d6z0_xGZnsyc/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI1NzAx/MTctMTM3NjQ4NTk1/NC00NzA2LmpwZWc.jpeg",
+    "thumb": "https://i.discogs.com/FH5lEsxnPZ_1W1rH6PfRg4bgdwh0hDCqu78VjDZeSi8/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI1NzAx/MTctMTM3NjQ4NTk1/NC00NzA2LmpwZWc.jpeg",
+    "custom_fields": {
+      "Feeling": "Groovy",
+      "MyGeneres": "Mellow R'n'B",
+      "Instruments": "Main voice (Female)",
+      "Rating": "4"
+    },
+    "spotify_url": "https://open.spotify.com/album/1Okk0lo0aBdchXZmjDHjkS"
   }
 ]
