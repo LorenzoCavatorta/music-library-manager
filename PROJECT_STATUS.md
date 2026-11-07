@@ -5,7 +5,7 @@
 ## Completed
 
 - [x] Static site (`site/index.html`) — DaisyUI + Tailwind, magazine grid with cover art
-- [x] Passphrase unlock screen (AES-256-GCM, Web Crypto API)
+- [x] ~~Passphrase unlock screen~~ — removed 2026-11-07; site is now public
 - [x] Filters: search, Feeling, MyGeneres, minimum rating (multi-select)
 - [x] Sorting: date added, rating, artist, year
 - [x] Card layout: artist + year → title → stars + Spotify icon → tags
@@ -19,7 +19,8 @@
 - [x] Sync-from-Discogs workflow (manual, preserves repo-only fields)
 - [x] Enrich-Spotify workflow (manual, with rate-limit warning)
 - [x] Spotify cache removed — URLs stored directly in `collection.json`
-- [x] Repo pushed to `github.com/LorenzoCavatorta/music-library-manager` (private)
+- [x] Repo pushed to `github.com/LorenzoCavatorta/music-library-manager` (public)
+- [x] Workflow actions pinned to commit SHAs, kept current by Dependabot; CI installs with `uv sync --locked`
 
 ## TODO
 
@@ -35,7 +36,7 @@
 | Decision | Reasoning |
 |----------|-----------|
 | `collection.json` as source of truth | Independence from Discogs — deploys don't call external APIs; protects against Discogs dropping custom field support |
-| Deploy only encrypts (no export) | Fast, no external dependencies, always uses committed state |
+| Deploy only bundles (no export) | Fast, no external dependencies, always uses committed state |
 | Sync-from-Discogs is manual | Avoids overwriting local-only data; user decides when to pull |
 | Repo-only fields preserved on sync | Any field in existing records that Discogs doesn't provide is kept automatically |
 | Spotify URLs in collection (no cache) | Single source of truth; cache was only needed when rebuilding from scratch |
@@ -43,11 +44,13 @@
 | Failed add-requests stay open | Prevents losing requests silently; `needs-attention` label + comment guides the user |
 | Static site over self-hosted | No spare hardware, security concerns about VPS |
 | GitHub Pages over Netlify/Cloudflare | Free, simple, integrates with Actions |
-| Client-side encryption | Site is public but data is private — no auth server needed |
+| No encryption (public data) | Collection isn't sensitive; removing the passphrase removed the only reason a token lived in the browser |
 | DaisyUI + Tailwind (CDN) | No build step, polished look |
 | uv for Python env | Keeps project isolated from other work environments |
-| GitHub Issues for add-requests | Issues-only token scope, audit trail, no merge conflicts, any client can submit |
-| Token in encrypted payload | Only available after passphrase unlock; passphrase is the security boundary |
+| GitHub Issues for add-requests | Audit trail, no merge conflicts, any client can submit |
+| Add button opens a prefilled issue URL | No token in the page; GitHub login is the security boundary |
+| Only owner-opened issues are processed | Prevents strangers from writing to the Discogs collection via issues |
+| Cron uses built-in `GITHUB_TOKEN` | No long-lived PAT needed now that the browser doesn't create issues |
 | Separate cron workflow for processing | Decouples request processing from deploy — failures are isolated |
 | Plain `requests` for Spotify (not `spotipy`) | Only need 2 API calls; avoids extra dep for trivial auth+search |
 | Spotify Client Credentials (not user auth) | Search API is public, no need for user login flow |
