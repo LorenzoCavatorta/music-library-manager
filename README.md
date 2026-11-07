@@ -65,7 +65,7 @@ python3 -m http.server 8000 --directory site
 
 ### Prerequisites
 
-- Private GitHub repo at `github.com/LorenzoCavatorta/music-library-manager`
+- Public GitHub repo at `github.com/LorenzoCavatorta/music-library-manager` (the collection, config, issues and Actions logs are all publicly readable)
 - GitHub Pages enabled with "GitHub Actions" as the build source
 
 ### Secrets to configure

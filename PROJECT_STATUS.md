@@ -19,7 +19,8 @@
 - [x] Sync-from-Discogs workflow (manual, preserves repo-only fields)
 - [x] Enrich-Spotify workflow (manual, with rate-limit warning)
 - [x] Spotify cache removed — URLs stored directly in `collection.json`
-- [x] Repo pushed to `github.com/LorenzoCavatorta/music-library-manager` (private)
+- [x] Repo pushed to `github.com/LorenzoCavatorta/music-library-manager` (public)
+- [x] Workflow actions pinned to commit SHAs, kept current by Dependabot; CI installs with `uv sync --locked`
 
 ## TODO
 
