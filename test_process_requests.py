@@ -2,7 +2,20 @@
 
 import pytest
 
-from process_requests import clean_discogs_artist, parse_request
+from process_requests import clean_discogs_artist, is_from_owner, parse_request
+
+
+class TestIsFromOwner:
+    def test_owner(self):
+        assert is_from_owner({"user": {"login": "LorenzoCavatorta"}})
+        assert is_from_owner({"user": {"login": "lorenzocavatorta"}})
+
+    def test_someone_else(self):
+        assert not is_from_owner({"user": {"login": "someone-else"}})
+
+    def test_missing_user(self):
+        assert not is_from_owner({})
+        assert not is_from_owner({"user": None})
 
 
 class TestParseRequest:
@@ -60,6 +73,26 @@ class TestParseRequest:
         query, fields, url = parse_request(issue)
         assert query == "Radiohead"
         assert url == "https://open.spotify.com/album/6dVIqQ8qmQ5GBnJ9shOYGE"
+
+    def test_rejects_non_spotify_url_in_body(self):
+        for bad in (
+            "javascript:alert(1)",
+            "https://evil.example/album/abc",
+            "http://open.spotify.com/album/abc",
+        ):
+            issue = {"title": "Add: Some Album", "body": f"- **SpotifyURL:** {bad}"}
+            query, fields, url = parse_request(issue)
+            assert url is None
+            assert "SpotifyURL" not in fields
+            assert query == "Some Album"
+
+    def test_normalizes_spotify_url_in_body(self):
+        issue = {
+            "title": "Add: Some Album",
+            "body": '- **SpotifyURL:** https://open.spotify.com/album/abc123?si=x"onmouseover=alert(1)',
+        }
+        _, _, url = parse_request(issue)
+        assert url == "https://open.spotify.com/album/abc123"
 
     def test_prefix_variations(self):
         for prefix in ("Add:", "add:", "Add ", "add "):

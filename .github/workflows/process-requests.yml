@@ -35,7 +35,7 @@ jobs:
         continue-on-error: true
         run: uv run python process_requests.py
         env:
-          GH_TOKEN: ${{ secrets.GH_ISSUES_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DISCOGS_TOKEN: ${{ secrets.DISCOGS_TOKEN }}
           SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
           SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
@@ -47,11 +47,8 @@ jobs:
           git add collection.json
           git diff --cached --quiet || git commit -m "Update collection" && git push
 
-      - name: Encrypt collection
-        run: uv run python encrypt_collection.py
-        env:
-          PASSPHRASE: ${{ secrets.PASSPHRASE }}
-          GH_ISSUES_TOKEN: ${{ secrets.GH_ISSUES_TOKEN }}
+      - name: Build site data
+        run: uv run python build_site.py
 
       - name: Setup Pages
         uses: actions/configure-pages@v6

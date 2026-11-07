@@ -14,7 +14,13 @@ DISCOGS_API = "https://api.discogs.com"
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 SPOTIFY_SEARCH_URL = "https://api.spotify.com/v1/search"
 REPO = "LorenzoCavatorta/music-library-manager"
+REPO_OWNER = REPO.split("/")[0]
 COLLECTION_PATH = "collection.json"
+SPOTIFY_ALBUM_RE = re.compile(r"https://open\.spotify\.com/album/[a-zA-Z0-9]+")
+
+
+def is_from_owner(issue: dict) -> bool:
+    return (issue.get("user") or {}).get("login", "").lower() == REPO_OWNER.lower()
 
 
 def get_github_session(token: str) -> requests.Session:
@@ -43,10 +49,15 @@ def fetch_open_requests(gh: requests.Session) -> list[dict]:
     )
     resp.raise_for_status()
     issues = resp.json()
-    return [
-        i for i in issues
-        if not any(l["name"] == "needs-attention" for l in i.get("labels", []))
-    ]
+    requests_ = []
+    for i in issues:
+        if not is_from_owner(i):
+            print(f"Skipping #{i['number']}: not opened by {REPO_OWNER}")
+            continue
+        if any(l["name"] == "needs-attention" for l in i.get("labels", [])):
+            continue
+        requests_.append(i)
+    return requests_
 
 
 def fetch_release_details(discogs: requests.Session, release_id: int) -> dict | None:
@@ -192,10 +203,14 @@ def parse_request(issue: dict) -> tuple[str, dict]:
                 custom_fields[key] = value
 
     spotify_url = custom_fields.pop("SpotifyURL", None)
+    if spotify_url:
+        # Only accept real Spotify album links; normalize away query strings etc.
+        valid = SPOTIFY_ALBUM_RE.match(spotify_url)
+        spotify_url = valid.group(0) if valid else None
     if not spotify_url:
         match = re.search(r"https://open\.spotify\.com/album/[a-zA-Z0-9]+[\S]*", title)
         if match:
-            spotify_url = re.match(r"https://open\.spotify\.com/album/[a-zA-Z0-9]+", match.group(0)).group(0)
+            spotify_url = SPOTIFY_ALBUM_RE.match(match.group(0)).group(0)
             title = title.replace(match.group(0), "").strip(" -–—?&")
     else:
         match = re.search(r"https://open\.spotify\.com/album/[a-zA-Z0-9]+[\S]*", title)

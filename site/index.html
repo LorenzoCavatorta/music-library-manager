@@ -39,66 +39,10 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Unlock screen */
-        #unlock {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background:
-                radial-gradient(ellipse at 50% 30%, rgba(200, 121, 65, 0.06) 0%, transparent 60%),
-                var(--bg);
-        }
-        .unlock-card {
-            background: var(--surface);
-            border: 1px solid rgba(255,255,255,0.04);
-            border-radius: 12px;
-            padding: 3rem 2.5rem;
-            width: min(380px, 90vw);
-            text-align: center;
-            box-shadow: 0 24px 80px rgba(0,0,0,0.5);
-        }
-        .unlock-card h2 {
-            font-family: var(--font-display);
-            font-size: 1.8rem;
-            font-weight: 900;
-            letter-spacing: -0.03em;
-            margin-bottom: 0.25rem;
-        }
-        .unlock-card p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 2rem; }
-        .unlock-input {
-            width: 100%;
-            background: var(--bg);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: var(--radius);
-            padding: 0.8rem 1rem;
-            color: var(--text);
-            font-size: 0.95rem;
-            font-family: var(--font-body);
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .unlock-input:focus { border-color: var(--accent); }
-        .unlock-btn {
-            margin-top: 1.2rem;
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            border-radius: var(--radius);
-            font-size: 0.9rem;
-            font-weight: 500;
-            font-family: var(--font-body);
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .unlock-btn:hover { background: var(--accent-dim); }
-        .error-msg { color: #d45; font-size: 0.8rem; margin-top: 0.75rem; min-height: 1.2em; }
+        .error-msg { color: #d45; font-size: 0.85rem; margin-top: 2rem; text-align: center; }
 
         /* App layout */
-        #app { display: none; max-width: 1400px; margin: 0 auto; padding: 1.5rem; }
-        #app.visible { display: block; }
+        #app { max-width: 1400px; margin: 0 auto; padding: 1.5rem; }
 
         /* Header */
         .header {
@@ -440,16 +384,6 @@
     </style>
 </head>
 <body>
-    <div id="unlock">
-        <div class="unlock-card">
-            <h2>Music Library</h2>
-            <p>Enter passphrase to browse your collection</p>
-            <input type="password" id="passphrase" placeholder="Passphrase" class="unlock-input" autofocus>
-            <button class="unlock-btn" onclick="unlock()">Unlock</button>
-            <p class="error-msg" id="error"></p>
-        </div>
-    </div>
-
     <div id="app">
         <div class="header">
             <div class="header-top">
@@ -490,13 +424,14 @@
                 <div class="pills" id="activePills"></div>
             </div>
         </div>
+        <p class="error-msg hidden" id="error"></p>
         <div class="crate" id="grid"></div>
     </div>
 
     <div class="modal-backdrop" id="addModal">
         <div class="modal">
             <h3>Add to collection</h3>
-            <p class="subtitle">Search Discogs by name or paste a Spotify link.</p>
+            <p class="subtitle">Search Discogs by name or paste a Spotify link. Opens a prefilled GitHub issue — submit it there.</p>
             <div class="modal-fields">
                 <input type="text" id="addQuery" placeholder="Artist - Title or Spotify link" class="modal-input">
                 <div class="modal-row">
@@ -517,7 +452,7 @@
             </div>
             <div class="modal-actions">
                 <button class="btn" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-primary" id="addSubmitBtn" onclick="submitAddRequest()">Submit</button>
+                <button class="btn btn-primary" id="addSubmitBtn" onclick="submitAddRequest()">Open in GitHub</button>
             </div>
             <p class="modal-status" id="addStatus"></p>
         </div>
@@ -528,48 +463,35 @@
         const selected = { feeling: new Set(), genre: new Set() };
         let currentRating = 0;
         let currentSort = "random";
-        let ghIssueToken = null;
         let fieldConfig = null;
+        const ISSUES_NEW_URL = "https://github.com/LorenzoCavatorta/music-library-manager/issues/new";
 
-        document.getElementById("passphrase").addEventListener("keydown", e => { if (e.key === "Enter") unlock(); });
-
-        async function decrypt(encrypted, passphrase) {
-            const salt = Uint8Array.from(atob(encrypted.salt), c => c.charCodeAt(0));
-            const iv = Uint8Array.from(atob(encrypted.iv), c => c.charCodeAt(0));
-            const data = Uint8Array.from(atob(encrypted.data), c => c.charCodeAt(0));
-            const keyMaterial = await crypto.subtle.importKey("raw", new TextEncoder().encode(passphrase), "PBKDF2", false, ["deriveKey"]);
-            const key = await crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" }, keyMaterial, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
-            const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, data);
-            return new TextDecoder().decode(decrypted);
-        }
-
-        async function unlock() {
-            const passphrase = document.getElementById("passphrase").value;
-            document.getElementById("error").textContent = "";
+        async function load() {
             try {
-                const resp = await fetch("collection.enc.json");
-                const encrypted = await resp.json();
-                const payload = JSON.parse(await decrypt(encrypted, passphrase));
-                if (Array.isArray(payload)) {
-                    collection = payload;
-                } else {
-                    collection = payload.collection;
-                    if (payload.gh_issues_token) ghIssueToken = payload.gh_issues_token;
-                    if (payload.config) fieldConfig = payload.config.fields;
-                }
+                const resp = await fetch("data.json");
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const payload = await resp.json();
+                collection = payload.collection;
+                if (payload.config) fieldConfig = payload.config.fields;
                 showApp();
-            } catch (e) { document.getElementById("error").textContent = "Wrong passphrase"; }
+            } catch (e) {
+                const err = document.getElementById("error");
+                err.textContent = "Could not load the collection.";
+                err.classList.remove("hidden");
+            }
         }
 
         function showApp() {
-            document.getElementById("unlock").classList.add("hidden");
-            document.getElementById("app").classList.add("visible");
             populateFilters();
             populateAddForm();
             render();
             document.getElementById("search").addEventListener("input", render);
             document.addEventListener("click", e => {
                 if (!e.target.closest(".dropdown")) closeAllMenus();
+            });
+            document.getElementById("activePills").addEventListener("click", e => {
+                const pill = e.target.closest(".pill");
+                if (pill) removePill(pill.dataset.type, pill.dataset.value);
             });
         }
 
@@ -671,15 +593,15 @@
         function updatePills() {
             const container = document.getElementById("activePills");
             let html = "";
-            selected.feeling.forEach(v => { html += `<span class="pill pill-feeling" onclick="removePill('feeling','${esc(v)}')">${esc(v)} &times;</span>`; });
-            selected.genre.forEach(v => { html += `<span class="pill pill-genre" onclick="removePill('genre','${esc(v)}')">${esc(v)} &times;</span>`; });
+            selected.feeling.forEach(v => { html += `<span class="pill pill-feeling" data-type="feeling" data-value="${esc(v)}">${esc(v)} &times;</span>`; });
+            selected.genre.forEach(v => { html += `<span class="pill pill-genre" data-type="genre" data-value="${esc(v)}">${esc(v)} &times;</span>`; });
             container.innerHTML = html;
         }
 
         function removePill(type, value) {
             selected[type].delete(value);
             const menu = document.getElementById(type + "Menu");
-            const cb = menu.querySelector(`input[value="${value}"]`);
+            const cb = menu.querySelector(`input[value="${CSS.escape(value)}"]`);
             if (cb) cb.checked = false;
             updateLabel(type);
             updatePills();
@@ -752,8 +674,8 @@
             const imgBlock = img
                 ? `<img src="${esc(img)}" alt="" loading="lazy" onload="this.classList.add('loaded')">`
                 : `<div class="sleeve-placeholder"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1014 17V7h4V3h-6z"/></svg></div>`;
-            const spotify = r.spotify_url
-                ? `<a href="${esc(r.spotify_url)}" target="_blank" rel="noopener" class="spotify-link" title="Open in Spotify"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg></a>`
+            const spotify = /^https:\/\/open\.spotify\.com\//.test(r.spotify_url || "")
+                ?`<a href="${esc(r.spotify_url)}" target="_blank" rel="noopener" class="spotify-link" title="Open in Spotify"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg></a>`
                 : "";
             const feeling = r.custom_fields["Feeling"];
             const genre = r.custom_fields["MyGeneres"];
@@ -768,7 +690,7 @@
                     <div class="record-artist">${esc(r.artists.join(", "))}</div>
                     <div class="record-title">${esc(r.title)}</div>
                     <div class="record-meta">
-                        <span class="record-year">${r.year || ""}</span>
+                        <span class="record-year">${esc(r.year)}</span>
                         <span class="record-stars">${stars(r.rating || 0)}</span>
                     </div>
                     ${badges ? `<div class="record-badges">${badges}</div>` : ""}
@@ -777,31 +699,25 @@
         }
 
         function stars(n) { return n > 0 ? "★".repeat(n) : ""; }
-        function esc(s) { const d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+        // Escapes for both HTML text and quoted attribute values.
+        const ESC_MAP = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+        function esc(s) { return String(s || "").replace(/[&<>"']/g, c => ESC_MAP[c]); }
 
         // Modal
         function openModal() { document.getElementById("addModal").classList.add("open"); }
         function closeModal() { document.getElementById("addModal").classList.remove("open"); }
         document.getElementById("addModal").addEventListener("click", e => { if (e.target === e.currentTarget) closeModal(); });
 
-        async function submitAddRequest() {
+        function submitAddRequest() {
             const query = document.getElementById("addQuery").value.trim();
             const feeling = document.getElementById("addFeeling").value;
             const genre = document.getElementById("addGenre").value;
             const instruments = document.getElementById("addInstruments").value;
             const rating = document.getElementById("addRating").value;
             const status = document.getElementById("addStatus");
-            const btn = document.getElementById("addSubmitBtn");
 
             if (!query) { status.textContent = "Please enter an album to add."; status.className = "modal-status warning"; return; }
 
-            if (!ghIssueToken) {
-                status.textContent = "No GitHub token configured.";
-                status.className = "modal-status error";
-                return;
-            }
-
-            btn.classList.add("loading");
             status.textContent = "";
 
             const spotifyMatch = query.match(/https:\/\/open\.spotify\.com\/album\/([a-zA-Z0-9]+)/);
@@ -814,43 +730,27 @@
             if (spotifyMatch) fields.push(`- **SpotifyURL:** ${spotifyMatch[0]}`);
             const body = fields.length ? `### Custom fields\n\n${fields.join("\n")}` : "";
 
-            try {
-                const resp = await fetch("https://api.github.com/repos/LorenzoCavatorta/music-library-manager/issues", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${ghIssueToken}`,
-                        "Accept": "application/vnd.github+json",
-                    },
-                    body: JSON.stringify({
-                        title: `Add: ${query}`,
-                        labels: ["library-addition-request"],
-                        body: body,
-                    }),
-                });
+            // GitHub's own login gates issue creation — no token lives in this page.
+            const params = new URLSearchParams({
+                title: `Add: ${query}`,
+                labels: "library-addition-request",
+                body: body,
+            });
+            window.open(`${ISSUES_NEW_URL}?${params}`, "_blank", "noopener");
 
-                if (resp.ok) {
-                    document.getElementById("addQuery").value = "";
-                    document.getElementById("addFeeling").value = "";
-                    document.getElementById("addGenre").value = "";
-                    document.getElementById("addInstruments").value = "";
-                    document.getElementById("addRating").value = "";
-                    status.textContent = "";
-                    closeModal();
-                } else {
-                    const err = await resp.json();
-                    status.textContent = `Error: ${err.message || resp.status}`;
-                    status.className = "modal-status error";
-                }
-            } catch (e) {
-                status.textContent = "Network error. Please try again.";
-                status.className = "modal-status error";
-            }
-            btn.classList.remove("loading");
+            document.getElementById("addQuery").value = "";
+            document.getElementById("addFeeling").value = "";
+            document.getElementById("addGenre").value = "";
+            document.getElementById("addInstruments").value = "";
+            document.getElementById("addRating").value = "";
+            closeModal();
         }
 
         document.getElementById("addQuery").addEventListener("keydown", e => {
             if (e.key === "Enter") submitAddRequest();
         });
+
+        load();
     </script>
 </body>
 </html>
