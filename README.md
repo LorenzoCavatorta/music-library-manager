@@ -49,7 +49,7 @@ Discogs removed the ability to filter/view custom fields in their app. This proj
 |----------|---------|--------------|
 | **Deploy** | Push to main, manual | Builds `site/data.json` from `collection.json` and deploys to Pages |
 | **Process add-requests** | Daily cron (06:00 UTC), manual | Processes issue requests → adds to Discogs + `collection.json` (with Spotify lookup) → commits → deploys |
-| **Enrich Spotify links** | Manual only | Searches Spotify for albums missing a URL, updates `collection.json` → commits → deploys |
+| **Enrich Spotify links** | Manual only | Searches Spotify for albums without a link (including previous misses), stores only confident artist + title matches, updates `collection.json` → commits → deploys |
 | **Sync from Discogs** | Manual only | Pulls fresh data from Discogs, preserving repo-only fields (e.g. `spotify_url`) → commits → deploys |
 
 ## Local development

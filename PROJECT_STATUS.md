@@ -19,12 +19,12 @@
 - [x] Sync-from-Discogs workflow (manual, preserves repo-only fields)
 - [x] Enrich-Spotify workflow (manual, with rate-limit warning)
 - [x] Spotify cache removed — URLs stored directly in `collection.json`
+- [x] Spotify matching scores candidates on artist + title (shared `spotify.py`); misses are retried; wrong links fixed (2026-11)
 - [x] Repo pushed to `github.com/LorenzoCavatorta/music-library-manager` (public)
 - [x] Workflow actions pinned to commit SHAs, kept current by Dependabot; CI installs with `uv sync --locked`
 
 ## TODO
 
-- [ ] Strip Discogs disambiguation suffixes from artist names before Spotify search (e.g. "Grimes (4)" → "Grimes") — would improve match rate
 - [ ] PWA manifest + service worker for offline support / "Add to Home Screen"
 - [ ] Additional filters (Instruments, Highlights, year range)
 - [ ] Link each card to the Discogs release page
@@ -53,4 +53,5 @@
 | Cron uses built-in `GITHUB_TOKEN` | No long-lived PAT needed now that the browser doesn't create issues |
 | Separate cron workflow for processing | Decouples request processing from deploy — failures are isolated |
 | Plain `requests` for Spotify (not `spotipy`) | Only need 2 API calls; avoids extra dep for trivial auth+search |
+| Spotify: no link beats a wrong link | Only confident artist + title matches are stored; variants (remix/live/instrumental) never substitute for the original |
 | Spotify Client Credentials (not user auth) | Search API is public, no need for user login flow |

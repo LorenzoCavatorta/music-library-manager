@@ -1,6 +1,5 @@
 """Process 'add-request' GitHub issues: search Discogs, add to collection, update collection.json."""
 
-import base64
 import json
 import os
 import re
@@ -9,10 +8,10 @@ import time
 
 import requests
 
+from spotify import Spotify, SpotifyError, clean_artist
+
 GITHUB_API = "https://api.github.com"
 DISCOGS_API = "https://api.discogs.com"
-SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
-SPOTIFY_SEARCH_URL = "https://api.spotify.com/v1/search"
 REPO = "LorenzoCavatorta/music-library-manager"
 REPO_OWNER = REPO.split("/")[0]
 COLLECTION_PATH = "collection.json"
@@ -220,86 +219,31 @@ def parse_request(issue: dict) -> tuple[str, dict]:
     return title.strip(), custom_fields, spotify_url
 
 
-def get_spotify_album_info(spotify_url: str) -> tuple[str, str] | None:
+clean_discogs_artist = clean_artist
+
+
+def get_spotify_album_info(sp: Spotify | None, spotify_url: str) -> tuple[str, str] | None:
     """Fetch artist and title from a Spotify album URL."""
-    client_id = os.environ.get("SPOTIFY_CLIENT_ID")
-    client_secret = os.environ.get("SPOTIFY_CLIENT_SECRET")
-    if not client_id or not client_secret:
+    if sp is None:
+        return None
+    try:
+        return sp.album_info(spotify_url)
+    except SpotifyError as e:
+        print(f"  Spotify lookup failed: {e}")
         return None
 
-    resp = requests.post(
-        SPOTIFY_TOKEN_URL,
-        data={"grant_type": "client_credentials"},
-        headers={
-            "Authorization": "Basic "
-            + base64.b64encode(f"{client_id}:{client_secret}".encode()).decode(),
-        },
-        timeout=(5, 10),
-    )
-    if resp.status_code != 200:
+
+def get_spotify_url(sp: Spotify | None, artists: list[str], title: str, year: int | None) -> str | None:
+    """Confident Spotify match for a release. None if not found or Spotify unavailable
+    (the record is then picked up by the next enrich_spotify run)."""
+    if sp is None:
         return None
-
-    token = resp.json()["access_token"]
-    album_id = spotify_url.rstrip("/").split("/")[-1].split("?")[0]
-    resp = requests.get(
-        f"https://api.spotify.com/v1/albums/{album_id}",
-        headers={"Authorization": f"Bearer {token}"},
-        timeout=(5, 10),
-    )
-    if resp.status_code != 200:
+    try:
+        match = sp.find_album(artists, title, year)
+    except SpotifyError as e:
+        print(f"  Spotify search failed: {e}")
         return None
-
-    data = resp.json()
-    artist = data["artists"][0]["name"] if data.get("artists") else ""
-    title = data.get("name", "")
-    return artist, title
-
-
-def clean_discogs_artist(name: str) -> str:
-    return re.sub(r"\s*\(\d+\)$", "", name)
-
-
-def get_spotify_url(artist: str, title: str) -> str | None:
-    client_id = os.environ.get("SPOTIFY_CLIENT_ID")
-    client_secret = os.environ.get("SPOTIFY_CLIENT_SECRET")
-    if not client_id or not client_secret:
-        return None
-
-    artist = clean_discogs_artist(artist)
-
-    resp = requests.post(
-        SPOTIFY_TOKEN_URL,
-        data={"grant_type": "client_credentials"},
-        headers={
-            "Authorization": "Basic "
-            + base64.b64encode(f"{client_id}:{client_secret}".encode()).decode(),
-        },
-        timeout=(5, 10),
-    )
-    if resp.status_code != 200:
-        return None
-
-    token = resp.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-
-    queries = [
-        f"artist:{artist} album:{title}",
-        f"{artist} {title}",
-    ]
-    for query in queries:
-        resp = requests.get(
-            SPOTIFY_SEARCH_URL,
-            params={"q": query, "type": "album", "limit": 1},
-            headers=headers,
-            timeout=(5, 10),
-        )
-        if resp.status_code != 200:
-            return None
-        items = resp.json().get("albums", {}).get("items", [])
-        if items:
-            return items[0]["external_urls"].get("spotify")
-
-    return None
+    return match["url"] if match else None
 
 
 def load_collection() -> list[dict]:
@@ -396,6 +340,14 @@ def main():
     field_ids = fetch_field_ids(discogs, username)
     print(f"Field IDs: {field_ids}")
 
+    try:
+        sp = Spotify.from_env()
+        if sp is None:
+            print("::warning::Spotify credentials not set; albums will be added without Spotify links")
+    except SpotifyError as e:
+        sp = None
+        print(f"::warning::{e}; albums will be added without Spotify links")
+
     failures = []
 
     for issue in issues:
@@ -407,7 +359,7 @@ def main():
             print(f"  Fields: {custom_fields}")
 
         if not query and provided_spotify_url:
-            info = get_spotify_album_info(provided_spotify_url)
+            info = get_spotify_album_info(sp, provided_spotify_url)
             if info:
                 query = f"{info[0]} - {info[1]}"
                 print(f"  Resolved from Spotify: \"{query}\"")
@@ -459,13 +411,15 @@ def main():
                 spotify_url = provided_spotify_url
             else:
                 if release_details:
-                    artist_name = release_details["artists"][0]["name"] if release_details.get("artists") else ""
+                    artist_names = [a["name"] for a in release_details.get("artists", [])]
                     album_title = release_details.get("title", "")
+                    album_year = release_details.get("year") or None
                 else:
                     parts = result.get("title", "").split(" - ", 1)
-                    artist_name = parts[0] if len(parts) == 2 else ""
+                    artist_names = [parts[0]] if len(parts) == 2 else []
                     album_title = parts[-1]
-                spotify_url = get_spotify_url(artist_name, album_title)
+                    album_year = int(result["year"]) if str(result.get("year", "")).isdigit() else None
+                spotify_url = get_spotify_url(sp, artist_names, album_title, album_year)
 
             if spotify_url:
                 print(f"  Spotify: {spotify_url}")
